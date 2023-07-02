@@ -36,3 +36,5 @@ dump.rdb
 /protos/*.go
 !/protos/coding.go
 go.work
+
+fs.db
