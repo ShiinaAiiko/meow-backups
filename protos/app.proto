@@ -1,0 +1,150 @@
+syntax = "proto3";
+
+option go_package = "./;protos";
+package app;
+import "backups.proto";
+
+message CheckForUpdates {
+  message Request {
+    // CheckForUpdates
+    // DownloadUpdate
+    // Install
+    string type = 1;
+  }
+  message Response {
+    // 2 有新的更新正在下载，1 有新的更新未下载, -1 没有新的更新
+    int64 status = 1;
+    float downloadProgress = 2;
+    string version = 3;
+  }
+}
+
+message Quit {
+  message Request {}
+  message Response {}
+}
+
+message Restart {
+  message Request {}
+  message Response {}
+}
+
+message UpdateSystemConfig {
+  message Request {
+    // zh-CN/zh-TW/en-US/system
+    string language = 1;
+    // black/dark/light/system
+    string appearance = 2;
+    // true/false/""
+    string automaticStart = 3;
+  }
+  message Response {}
+}
+
+message GetSystemConfig {
+  message Request {}
+  message Response {
+    // zh-CN/zh-TW/en-US/system
+    string language = 1;
+    // dark/light/system
+    string appearance = 2;
+    bool automaticStart = 3;
+    string version = 4;
+    string githubUrl = 5;
+    int64 startTime = 6;
+    Path path = 7;
+    string Os = 8;
+    // terminalCommand
+    message Path {
+      string home = 1;
+      string config = 2;
+      string database = 3;
+    }
+  }
+}
+
+message GetAppSummaryInfo {
+  message Request {}
+  message Response {
+    backups.FolderStatus localFolderStatus = 1;
+    backups.FolderStatus backupFolderStatus = 2;
+    int64 lastBackupTime = 3;
+    int64 currentOnlineDevices = 4;
+    int64 historicalOnlineDevices = 5;
+  }
+}
+
+message ForceOffline {
+  message Request {
+    string token = 1;
+    string deviceId = 2;
+    string offlineDeviceId = 4;
+  }
+  message Response {}
+}
+
+message OnForceOffline {
+  message Request {}
+  message Response {}
+}
+
+message OnlineDeviceList {
+  int64 loginTime = 2;
+  UserAgent userAgent = 3;
+  string location = 4;
+  string deviceId = 5;
+}
+
+message OtherDeviceOnline {
+  message Request {}
+  message Response {
+    OnlineDeviceList currentDevice = 1;
+    repeated OnlineDeviceList onlineDeviceList = 2;
+  }
+}
+message OtherDeviceOffline {
+  message Request {}
+  message Response {
+    OnlineDeviceList currentDevice = 1;
+    repeated OnlineDeviceList onlineDeviceList = 2;
+  }
+}
+
+message SendMessagesToOtherDevices {
+  message Request {
+    string deviceId = 1;
+    string apiName = 2;
+    string data = 3;
+  }
+  message Response {}
+}
+
+message ReceiveMessagesFromOtherDevices {
+  message Request {}
+  message Response {
+    string deviceId = 1;
+    string apiName = 2;
+    string data = 3;
+  }
+}
+
+message UserAgent {
+  message Browser {
+    string name = 1;
+    string major = 2;
+    string version = 3;
+  }
+  message Device {
+    string model = 1;
+    string type = 2;
+    string vendor = 3;
+  }
+  message OS {
+    string name = 1;
+    string version = 2;
+  }
+  Browser browser = 1;
+  Device device = 2;
+  OS os = 3;
+  string deviceName = 4;
+}

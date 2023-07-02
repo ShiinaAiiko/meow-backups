@@ -1,0 +1,8 @@
+**/node_modules
+**/pkg
+*/node_modupkg
+!web/node_modules/abab
+web/node_modules/abab/index.js
+node_modules
+temp
+

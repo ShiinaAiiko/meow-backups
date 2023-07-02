@@ -1,0 +1,126 @@
+syntax = "proto3";
+package backups;
+
+option go_package = "./;protos";
+
+message BackupItem {
+  string id = 1;
+  string name = 3;
+  string path = 2;
+  bool isPathExists = 17;
+  string backupPath = 11;
+  // Folder/File
+  string type = 16;
+  // 是否开启过滤模式，开启后在目标文件夹创建此过滤文件.mbignore
+  bool ignore = 4;
+  string ignoreText = 12;
+  bool compress = 5;
+  // 暂定仅zip
+  string compressSuffix = 6;
+  // 0则是不分卷
+  int64 compressVolumeSize = 7;
+  int64 interval = 8;
+  // mb为单位、超出容量后删除第一个
+  int64 maximumStorageSize = 9;
+  // 1 备份完成 0 正在备份 -1 暂停
+  int64 status = 10;
+
+  int64 lastBackupTime = 13;
+  FolderStatus localFolderStatus = 14;
+  FolderStatus backupFolderStatus = 15;
+  int64 createTime = 18;
+  int64 lastUpdateTime = 19;
+
+  float backupProgress = 20;
+
+  bool deleteOldDataWhenSizeExceeds = 21;
+}
+
+message FolderStatus {
+  int64 files = 1;
+  int64 folders = 2;
+  // b
+  int64 size = 3;
+}
+
+message BackupNow {
+  message Request { string id = 1; }
+  message Response {}
+}
+
+message DeleteBackup {
+  message Request { string id = 1; }
+  message Response {}
+}
+
+message UpdateBackupStatus {
+  message Request {
+    string id = 1;
+    int64 status = 2;
+  }
+  message Response {}
+}
+
+message GetBackups {
+  message Request {}
+  message Response {
+    repeated BackupItem list = 1;
+    int64 total = 2;
+  }
+}
+
+// 状态更新 (服务器主动)
+message BackupTaskUpdate {
+  message Response { BackupItem backup = 1; }
+}
+
+message GetBackup {
+  message Request { string id = 1; }
+  message Response { BackupItem backup = 1; }
+}
+
+message UpdateBackup {
+  message Request {
+    string id = 1;
+    string path = 2;
+    string name = 3;
+    // 是否开启过滤模式，开启后在目标文件夹创建此过滤文件.mbignore
+    bool ignore = 4;
+    string ignoreText = 12;
+    bool compress = 5;
+    // 暂定仅zip
+    string compressSuffix = 6;
+    // 0则是不分卷
+    int64 compressVolumeSize = 7;
+    int64 interval = 8;
+    // b为单位、超出容量后删除第一个
+    int64 maximumStorageSize = 9;
+    string backupPath = 11;
+
+    bool deleteOldDataWhenSizeExceeds = 13;
+  }
+  message Response { BackupItem backup = 1; }
+}
+
+message AddBackup {
+  message Request {
+    string id = 1;
+    string path = 2;
+    string name = 3;
+    // 是否开启过滤模式，开启后在目标文件夹创建此过滤文件.mbignore
+    bool ignore = 4;
+    string ignoreText = 12;
+    bool compress = 5;
+    // 暂定仅zip
+    string compressSuffix = 6;
+    // 0则是不分卷
+    int64 compressVolumeSize = 7;
+    int64 interval = 8;
+    // b为单位、超出容量后删除第一个
+    int64 maximumStorageSize = 9;
+    string backupPath = 11;
+
+    bool deleteOldDataWhenSizeExceeds = 13;
+  }
+  message Response { BackupItem backup = 1; }
+}
