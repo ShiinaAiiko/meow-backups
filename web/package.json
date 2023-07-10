@@ -1,6 +1,6 @@
 {
 	"name": "meow-backups",
-	"version": "1.0.2",
+	"version":"1.0.0",
 	"private": true,
 	"description": "meow-backups喵备份，来创建一个自动备份任务吧。为不怕一万就怕万一的可能做个备份！",
 	"main": "./src/electron/dist/main.js",

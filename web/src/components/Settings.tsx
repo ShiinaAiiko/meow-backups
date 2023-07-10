@@ -516,9 +516,17 @@ const About = ({ show }: { show: boolean }) => {
 
 					<saki-button
 						ref={bindEvent({
-							tap: () => {
-								if (config.newVersion === config.version) {
-									dispatch(methods.app.checkForUpdates())
+							tap: async () => {
+								console.log('检测更新', config.newVersion, config.version)
+								if (
+									!config.newVersion ||
+									config.newVersion === config.version
+								) {
+									await dispatch(
+										methods.app.checkForUpdates({
+											alertModal: true,
+										})
+									)
 								} else {
 									dispatch(methods.app.update())
 								}

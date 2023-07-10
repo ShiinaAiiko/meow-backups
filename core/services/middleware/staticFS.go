@@ -26,7 +26,8 @@ func StaticFSMiddleware(staticPath string) gin.HandlerFunc {
 			// log.Info(path.Join(folderPath, "./static", c.Request.URL.Path))
 			filePath := filepath.Join(folderPath, staticPath, c.Request.URL.Path)
 			log.Info("Static File => ",
-				c.Request.URL.Path)
+				c.Request.URL.Path, nfile.IsExists(filePath))
+			// log.Info(filePath, nfile.IsExists(filePath))
 			if nfile.IsExists(filePath) {
 				// if nfile.IsDir(filePath) {
 				// 	c.Abort()

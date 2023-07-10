@@ -145,7 +145,16 @@ func (fc *AppController) CheckForUpdates(c *gin.Context) {
 		// 发现了新版本<(.*?)>
 		version, err := update.CheckForUpdates()
 		if err != nil {
-			log.Error(err)
+			if err.Error() == "already the latest version" {
+				responseData.Version = conf.Version
+				responseData.Status = -1
+				res.Data = protos.Encode(responseData)
+				res.Call(c)
+				return
+			}
+			res.Errors(err)
+			res.Code = 10001
+			res.Call(c)
 			return
 		}
 		// log.Info("version", version)
@@ -227,7 +236,7 @@ func (fc *AppController) GetSystemConfig(c *gin.Context) {
 		Appearance:     systemConfig["appearance"].(string),
 		AutomaticStart: systemConfig["automaticStart"].(bool),
 		Os:             runtime.GOOS,
-		Version:        "v1.0.0, " + runtime.GOOS + " (" + nstrings.ToString(32<<(^uint(0)>>63)) + "-bit " + runtime.GOARCH + ")",
+		Version:        conf.Version + " " + runtime.GOOS + " (" + nstrings.ToString(32<<(^uint(0)>>63)) + "-bit " + runtime.GOARCH + ")",
 		GithubUrl:      "https://github.com/ShiinaAiiko/meow-backups",
 		StartTime:      nint.ToInt64(startTime.Value()),
 		Path: &protos.GetSystemConfig_Response_Path{
@@ -451,7 +460,7 @@ func (fc *AppController) GetAppSummaryInfo(c *gin.Context) {
 			lastBackupTime = backup.LastBackupTime
 		}
 
-		if !narrays.Includes(paths, backup.Path) {
+		if !narrays.Includes(paths, backup.Path) && backup.LocalFolderStatus != nil {
 			paths = append(paths, backup.Path)
 			localFolderStatus.Files += backup.LocalFolderStatus.Files
 			localFolderStatus.Folders += backup.LocalFolderStatus.Folders
@@ -459,7 +468,7 @@ func (fc *AppController) GetAppSummaryInfo(c *gin.Context) {
 
 		}
 
-		if !narrays.Includes(paths, backup.BackupPath) {
+		if !narrays.Includes(paths, backup.BackupPath) && backup.BackupFolderStatus != nil {
 			paths = append(paths, backup.BackupPath)
 			backupFolderStatus.Files += backup.BackupFolderStatus.Files
 			backupFolderStatus.Folders += backup.BackupFolderStatus.Folders

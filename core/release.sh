@@ -1,9 +1,11 @@
 #! /bin/bash
-name="saass"
+name="meeow-backups"
 port=16100
 branch="main"
 
-version="v1.0.0"
+version=$2
+versionDownloadUrl=$3
+
 gitRev=$(git rev-parse --short HEAD)
 buildTime=$(date +'%Y-%m-%d_%T')
 
@@ -29,7 +31,7 @@ packageName="github.com/ShiinaAiiko/meow-backups/config"
 # }
 
 buildlinux() {
-  echo "-> 正在编译 Linux 应用"
+  echo "-> 正在编译 Golang Linux 应用"
   rm -rf ../build/meow-backups
   rm -rf ../build/bin/meow-backups-core
   rm -rf ../build/bin/meow-backups-upgrade
@@ -41,7 +43,9 @@ buildlinux() {
   -X $packageName.Version=${version} \
   -X $packageName.Platform=linux-amd64-x64 \
   -X $packageName.GitRev=${gitRev} \
-  -X $packageName.BuildTime=${buildTime}" \
+  -X $packageName.BuildTime=${buildTime} \
+  -X $packageName.VersionDownloadUrl=${versionDownloadUrl} \
+  " \
     -o ../build/bin/meow-backups-core \
     ./main.go
   echo "-> 核心程序已完成"
@@ -54,7 +58,9 @@ buildlinux() {
   -X $packageName.Version=${version} \
   -X $packageName.Platform=linux-amd64-x64 \
   -X $packageName.GitRev=${gitRev} \
-  -X $packageName.BuildTime=${buildTime}" \
+  -X $packageName.BuildTime=${buildTime} \
+  -X $packageName.VersionDownloadUrl=${versionDownloadUrl} \
+  " \
     -o ../build/meow-backups ./run/main.go
   echo "-> 守护程序已完成"
 
@@ -65,14 +71,16 @@ buildlinux() {
   -X $packageName.Version=${version} \
   -X $packageName.Platform=linux-amd64-x64 \
   -X $packageName.GitRev=${gitRev} \
-  -X $packageName.BuildTime=${buildTime}" \
+  -X $packageName.BuildTime=${buildTime} \
+  -X $packageName.VersionDownloadUrl=${versionDownloadUrl} \
+  " \
     -o ../build/bin/meow-backups-upgrade ./upgrade/main.go
   echo "-> 升级程序已完成"
 
 }
 
 buildwin() {
-  echo "-> 正在编译 Windows 应用"
+  echo "-> 正在编译 Golang Windows 应用"
   # go:generate goversioninfo -icon=icon.ico -64=true -manifest=app.manifest
   rm -rf ../build/meow-backups*.exe
   rm -rf ../build/bin/meow-backups-core*.exe
@@ -92,9 +100,11 @@ buildwin() {
     -ldflags "\
   -H=windowsgui \
   -X $packageName.Version=${version} \
-  -X $packageName.Platform=linux-amd64-x64 \
+  -X $packageName.Platform=win-amd64-x64 \
   -X $packageName.GitRev=${gitRev} \
-  -X $packageName.BuildTime=${buildTime}" \
+  -X $packageName.BuildTime=${buildTime} \
+  -X $packageName.VersionDownloadUrl=${versionDownloadUrl} \
+  " \
     -o ../build/bin/meow-backups-core.exe \
     ./main.go
 
@@ -111,9 +121,11 @@ buildwin() {
     go build \
     -ldflags "\
   -X $packageName.Version=${version} \
-  -X $packageName.Platform=linux-amd64-x64 \
+  -X $packageName.Platform=win-amd64-x64 \
   -X $packageName.GitRev=${gitRev} \
-  -X $packageName.BuildTime=${buildTime}" \
+  -X $packageName.BuildTime=${buildTime} \
+  -X $packageName.VersionDownloadUrl=${versionDownloadUrl} \
+  " \
     .
 
   mv ./run.exe ../../build/meow-backups.exe
@@ -127,9 +139,11 @@ buildwin() {
     go build \
     -ldflags "\
   -X $packageName.Version=${version} \
-  -X $packageName.Platform=linux-amd64-x64 \
+  -X $packageName.Platform=win-amd64-x64 \
   -X $packageName.GitRev=${gitRev} \
-  -X $packageName.BuildTime=${buildTime}" \
+  -X $packageName.BuildTime=${buildTime} \
+  -X $packageName.VersionDownloadUrl=${versionDownloadUrl} \
+  " \
     -o ../build/bin/meow-backups-upgrade.exe \
     ./upgrade/main.go
   echo "-> 升级程序已完成"
@@ -146,6 +160,7 @@ buildwin() {
 }
 
 build() {
+  echo "-> 正在编译 Golang 应用<$version>"
   # rm -rf /mnt/hgfs/Downloads/apps/build/*
   mkdir -p ../build/bin
   mkdir -p ../build/config

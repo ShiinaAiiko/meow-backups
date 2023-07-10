@@ -72,6 +72,8 @@ Options:
 
 	conf.Config.DefaultUser = *flagDefalutUser
 	// conf.Config.Port = methods.GetValidPort(*flagPort)
+	// log.Info(*flagPort)
+	// log.Info(os.Args)
 	conf.Config.Port = *flagPort
 	// conf.Config.Server.Mode = ncommon.IfElse(*flagDebug, "debug", "release")\
 	conf.Config.Debug = *flagDebug

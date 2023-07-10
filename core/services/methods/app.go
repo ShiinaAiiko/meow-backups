@@ -14,6 +14,7 @@ import (
 	"syscall"
 
 	conf "github.com/ShiinaAiiko/meow-backups/config"
+	"github.com/ShiinaAiiko/meow-backups/services/update"
 	"github.com/cherrai/nyanyago-utils/narrays"
 	"github.com/cherrai/nyanyago-utils/nfile"
 	"github.com/cherrai/nyanyago-utils/nint"
@@ -27,6 +28,9 @@ import (
 
 var (
 	svc service.Service
+
+	// 正在运行的主程序
+	mainProcess *os.Process
 )
 
 type CVSProgram struct {
@@ -309,55 +313,15 @@ func CloseAutoStart() {
 }
 
 func StopApp() {
-	// InitSVC()
-	log.Info("StopServer")
-	pid := os.Getpid()
-	// log.Info("正在停用端口", SVCConfig.Name+".exe", SVCConfig.Name+"-no-console.exe")
-	processes, err := process.Processes()
-	if err != nil {
-		log.Error(err)
-		return
-	}
-	for _, p := range processes {
-		n, err := p.Name()
-		if err != nil {
+	// log.Info(mainProcess)
+	if mainProcess != nil {
+		// log.Info(mainProcess.Pid)
+		mainProcess.Signal(syscall.SIGINT)
+		if err := mainProcess.Kill(); err != nil {
 			log.Error(err)
-			return
-		}
-		// log.Info(n, pid, p.Pid, n == SVCConfig.Name+".exe",
-		// 	n == SVCConfig.Name+"-no-console.exe",
-		// 	n == SVCConfig.Name || n == SVCConfig.Name+".exe" || n == SVCConfig.Name+"-core.exe")
-		// log.Info(nint.ToInt32(pid) != p.Pid &&
-		// 	(strings.Contains(n, conf.SVCConfig.Name) ||
-		// 		n == conf.SVCConfig.Name ||
-		// 		n == conf.SVCConfig.Name+"-core" ||
-		// 		n == conf.SVCConfig.Name+".exe" ||
-		// 		n == conf.SVCConfig.Name+"-core.exe"))
-		if nint.ToInt32(pid) != p.Pid &&
-			(n == conf.SVCConfig.Name ||
-				n == conf.SVCConfig.Name+".exe" ||
-				n == conf.SVCConfig.Name+"-core" ||
-				n == conf.SVCConfig.Name+"-core.exe") {
-			if err = p.Kill(); err != nil {
-				log.Error(n+" Error:", err)
-			} else {
-				log.Info(n + " PID<" + nstrings.ToString(p.Pid) + "> has been killed")
-			}
 		}
 	}
-
-	// switch sysType {
-	// case "windows":
-	// 	// 需要检测是服务的形式启动的还是直接启动
-	// 	mwinsvc.StopService(SVCConfig.Name)
-	// default:
-	// log.Info("正在停用服务")
-	// if err := svc.Stop(); err != nil {
-	// 	log.Error(err)
-	// }
-
-	// }
-
+	update.StopApp()
 }
 
 func InstallService() {
@@ -406,7 +370,7 @@ func OpenApp(logFunc func(stdout io.ReadCloser, l string)) {
 	// )
 
 	args := []string{
-		cmdPath,
+		// cmdPath,
 		"-port=" + nstrings.ToString(conf.Config.Port),
 		"-static-path=" + conf.Config.StaticPath,
 	}
@@ -439,7 +403,7 @@ func OpenApp(logFunc func(stdout io.ReadCloser, l string)) {
 
 	switch sysType {
 	case "linux":
-		process, err := os.StartProcess(cmdPath, args, &os.ProcAttr{
+		mainProcess, err = os.StartProcess(cmdPath, append([]string{cmdPath}, args...), &os.ProcAttr{
 			Dir: filepath.Dir(p),
 			Files: []*os.File{
 				os.Stdin, os.Stdout, os.Stderr,
@@ -452,15 +416,17 @@ func OpenApp(logFunc func(stdout io.ReadCloser, l string)) {
 			return
 		}
 
-		log.Error("process", process)
+		log.Error("process", mainProcess)
 
-		process.Wait()
+		mainProcess.Wait()
 	case "windows":
 
 		cmd := exec.Command(cmdPath, args...)
 		// 命令的错误输出和标准输出都连接到同一个管道
 		stdout, err := cmd.StdoutPipe()
 		cmd.Stderr = cmd.Stdout
+
+		// cmd.Process.Kill()
 
 		if err != nil {
 			log.Error(err)
@@ -471,6 +437,7 @@ func OpenApp(logFunc func(stdout io.ReadCloser, l string)) {
 			log.Error(err)
 			return
 		}
+		mainProcess = cmd.Process
 		// 从管道中实时获取输出并打印到终端
 		for {
 			tmp := make([]byte, 1024)
@@ -555,14 +522,14 @@ func InitLock() {
 	if nfile.IsExists(lockFilePath) {
 		fileBuffer, err := ioutil.ReadFile(lockFilePath)
 		if err != nil {
-			log.Error(err)
+			// log.Error(err)
 			// return v.Value, err
 		} else {
 			log.Info(string(fileBuffer))
 			if len(fileBuffer) != 0 {
 				p, err := process.NewProcess(nint.ToInt32(string(fileBuffer)))
 				if err != nil {
-					log.Error(err)
+					// log.Error(err)
 				} else {
 					if err := p.Kill(); err != nil {
 						log.Error(err)
@@ -596,7 +563,7 @@ func DeleteLock() {
 	path, _ := os.Executable()
 	pathDir := filepath.Dir(path)
 	// rootPath := filepath.Join(pathDir, ncommon.IfElse(strings.LastIndex(pathDir, "bin") == len(pathDir)-3, "..", "."))
-
+	log.Info("DeleteLock", filepath.Join(pathDir, "./lock"))
 	nfile.Remove(filepath.Join(pathDir, "./lock"))
-	nfile.Remove(filepath.Join(pathDir, "./bin/lock"))
+	// nfile.Remove(filepath.Join(pathDir, "./bin/lock"))
 }

@@ -109,6 +109,7 @@ func (cc *BackupController) BackupNow(e *nsocketio.EventInstance) error {
 	backup := backupVal.Value()
 
 	backup.Status = 1
+	backup.BackupProgress = 0
 	conf.BackupsFS.Set(data.Id, backup, 0)
 
 	if err = methods.PauseBackup(backup); err != nil {

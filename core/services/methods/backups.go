@@ -3,6 +3,7 @@ package methods
 import (
 	"archive/zip"
 	"bufio"
+	"fmt"
 	"io"
 	"io/fs"
 	"io/ioutil"
@@ -44,19 +45,22 @@ func FormatBackupItem(bi *protos.BackupItem) (*protos.BackupItem, error) {
 	bi.Type = typeStr
 	bi.IsPathExists = isPathExists
 
+	// log.Info("bi.Ignore", bi.Ignore, bi.Type)
 	if bi.Ignore {
 		if bi.Type == "File" {
 			return nil, errors.New("only folders can use filter mode")
 		}
 		mbIgnoreFilePath := filepath.Join(bi.Path, ".mbignore")
 
+		// log.Info(nfile.IsExists(mbIgnoreFilePath))
 		if nfile.IsExists(mbIgnoreFilePath) {
 			bps, err := os.Stat(mbIgnoreFilePath)
 			if err != nil {
 				return nil, err
 			}
 			// log.Info(bps.ModTime().Unix(), bi.LastUpdateTime)
-			if bps.ModTime().Unix() > bi.LastUpdateTime {
+			// log.Info(bps.ModTime().Unix() > bi.LastUpdateTime)
+			if bps.ModTime().Unix() > bi.LastUpdateTime || bi.IgnoreText == "" {
 				fileBuffer, err := ioutil.ReadFile(mbIgnoreFilePath)
 				if err != nil {
 					return nil, err
@@ -196,30 +200,35 @@ func UpdateBackupStats(bi *protos.BackupItem) {
 	// }
 }
 
-func ScheduledBackup() {
+func ScheduledBackup(isFirst bool) {
 	backups, err := conf.BackupsFS.Values()
 	if err != nil {
 		log.Error(err)
 		return
 	}
 	for _, v := range backups {
+		if isFirst {
+			if v.Value().Status == 0 {
+				PauseBackup(v.Value())
+			}
+		}
 		ScheduledBackupItem(v.Value())
 	}
 
 	// 每2分钟强制执行一次，以防休眠问题
 	ntimer.SetTimeout(func() {
-		ScheduledBackup()
+		ScheduledBackup(false)
 	}, 60*2*1000)
 }
 
 func ScheduledBackupItem(bi *protos.BackupItem) {
-	ClearScheduledBackupItem(bi)
-	log.Error(bi)
-	log.Error(bi.Status)
 	if bi.Status == 0 {
-		PauseBackup(bi)
+		// PauseBackup(bi)
 		return
 	}
+	ClearScheduledBackupItem(bi)
+	// log.Error(bi)
+	// log.Error(bi.Status)
 	if bi.Status == 1 && bi.LastBackupTime+bi.Interval < time.Now().Unix() {
 		go BackupNow(bi)
 		return
@@ -249,6 +258,9 @@ func ClearScheduledBackupItem(bi *protos.BackupItem) {
 }
 
 func EmitMessage(bi *protos.BackupItem) {
+	if conf.SocketIO == nil {
+		return
+	}
 	var res response.ResponseProtobufType
 	res.Code = 200
 	res.Data = protos.Encode(&protos.BackupTaskUpdate_Response{
@@ -258,7 +270,6 @@ func EmitMessage(bi *protos.BackupItem) {
 	conn := nsocketio.ConnContext{
 		ServerContext: conf.SocketIO,
 	}
-
 	conn.BroadcastToRoom(api.Namespace[api.ApiVersion]["backup"],
 		"watchBackupStatus",
 		api.EventName[api.ApiVersion]["routeEventName"]["backupTaskUpdate"],
@@ -266,11 +277,12 @@ func EmitMessage(bi *protos.BackupItem) {
 }
 
 func PauseBackup(bi *protos.BackupItem) error {
+	// log.Error("PauseBackup Func", bi)
 	// 删除文件
 	// log.Error("PauseBackup backupPathMap[bi.Id]",
 	// 	backupPathMap[bi.Id], backupPathMap[bi.Id] != "",
 	// )
-	if backupPathMap[bi.Id] != "" || bi.Status == 0 {
+	if bi != nil && backupPathMap[bi.Id] != "" || bi.Status == 0 {
 		backupPath := backupPathMap[bi.Id]
 		backupPathMap[bi.Id] = ""
 		// log.Warn("backupPathMap[bi.Id]", backupPathMap[bi.Id])
@@ -368,6 +380,7 @@ func BackupNow(bi *protos.BackupItem) {
 			bi.BackupProgress = 0
 			conf.BackupsFS.Set(bi.Id, bi, 0)
 
+			log.Info("errorTime >=10", errorTime)
 			backupPathMap[bi.Id] = ""
 			ScheduledBackupItem(bi)
 			EmitMessage(bi)
@@ -380,7 +393,8 @@ func BackupNow(bi *protos.BackupItem) {
 			errorTime = 0
 		}
 		bp := float32(cSize) / float32(pfs.Size)
-		log.Info(cSize, pfs.Size, bp)
+		// log.Info(cSize, pfs.Size, bp)
+		log.Info("-> 已备份", fmt.Sprintf("%.2f%%", bp))
 		if bp >= 1 {
 			bi.LastBackupTime = time.Now().Unix()
 			bi.Status = 0
@@ -393,6 +407,8 @@ func BackupNow(bi *protos.BackupItem) {
 				bi.Status = 1
 				bi.BackupProgress = 0
 				conf.BackupsFS.Set(bi.Id, bi, 0)
+
+				log.Info("备份结束了。")
 
 				backupPathMap[bi.Id] = ""
 				ScheduledBackupItem(bi)
@@ -432,7 +448,7 @@ func BackupNow(bi *protos.BackupItem) {
 		backupPath := filepath.Join(bi.BackupPath, time.Now().Format("2006-01-02_15-04-05")) + ".zip"
 		backupPathMap[bi.Id] = backupPath
 		err = Zip(bi.Path, backupPath, &ignoreMatches, &includesMatches, &cSize, bi.Id)
-		log.Info("copy ", err)
+		// log.Info("copy ", err)
 		if err != nil {
 			errorTime = 10
 			log.Error(err)
@@ -452,8 +468,8 @@ func DeleteOldData(bi *protos.BackupItem, ignoreMatches []string) error {
 		return err
 	}
 
-	log.Info(bpfs.Size, bi.MaximumStorageSize*1024*1024)
-	log.Info(bpfs.Size >= bi.MaximumStorageSize*1024*1024)
+	// log.Info(bpfs.Size, bi.MaximumStorageSize*1024*1024)
+	// log.Info(bpfs.Size >= bi.MaximumStorageSize*1024*1024)
 	if bpfs.Size >= bi.MaximumStorageSize*1024*1024 {
 		log.Error("容量已超出!")
 		if !bi.DeleteOldDataWhenSizeExceeds {
@@ -662,8 +678,12 @@ func Zip(formPath, toPath string, ignore *([]string), includesMatches *([]string
 		baseDir = filepath.Base(formPath)
 	}
 
+	// log.Info("将启动" + nstrings.ToString(runtime.NumCPU()) + "个协程")
+	// ch := make(chan struct{}, runtime.NumCPU())
+
 	var zipFunc func(p string, fn func(path string, file fs.FileInfo) bool) error
 	zipFunc = func(p string, fn func(path string, file fs.FileInfo) bool) error {
+		// log.Info("path", p)
 		if backupPathMap[backupId] == "" {
 			return errors.New("pause backup")
 		}
@@ -701,17 +721,27 @@ func Zip(formPath, toPath string, ignore *([]string), includesMatches *([]string
 			return err
 		}
 
+		// log.Info(filepath.Join(p), info.IsDir())
 		if info.IsDir() {
+			// eg, ctx := errgroup.WithContext(context.Background())
+			// g := goroutinepanic.New()
 			fs, err := ioutil.ReadDir(p)
 			if err != nil {
 				return err
 			}
 			for _, v := range fs {
-				zipFunc(filepath.Join(p, v.Name()), fn)
+				err = zipFunc(filepath.Join(p, v.Name()), fn)
 				if err != nil {
+					// log.Error(err)
 					return err
 				}
 			}
+			// err = g.Wait()
+			// log.Info("g.wait", err)
+			// if err != nil {
+			// 	fmt.Printf("Something is wrong->%v\n", err)
+			// 	return err
+			// }
 			return nil
 		}
 		//写入文件内容

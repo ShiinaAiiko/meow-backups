@@ -65,7 +65,7 @@ const resources = {
 			backupPath: '备份路径',
 			localState: '本地占用',
 			backupState: '备份占用',
-			BackupSizeLimit: '备份容量限制',
+			backupSizeLimit: '备份容量限制',
 			filterMode: '过滤模式',
 			compressMode: '压缩模式',
 			lastBackupTime: '最后备份时间',

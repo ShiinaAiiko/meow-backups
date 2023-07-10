@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -38,11 +39,8 @@ type VersionItem struct {
 func CheckForUpdates() (*VersionItem, error) {
 	log.Info("正在检测更新")
 	// log.Info(conf.Version)
-	res, err := restyClient.R().SetQueryParams(map[string]string{
-		"path": "/meow-backups",
-		"sid":  conf.VersionSid,
-		"pwd":  "",
-	}).Get(conf.VersionApiUrl + "/api/v1/share")
+	log.Info(conf.VersionDownloadUrl)
+	res, err := restyClient.R().Get(conf.VersionDownloadUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +93,7 @@ func CheckForUpdates() (*VersionItem, error) {
 	} else {
 		log.Info("版本更新获取失败")
 	}
-	return nil, errors.New("error checking version")
+	return nil, errors.New("already the latest version")
 }
 
 type Downloader struct {
@@ -131,6 +129,8 @@ func (d *Downloader) Read(p []byte) (n int, err error) {
 	}
 	if d.Current == d.Total {
 		d.Bar.Set(100)
+	} else {
+		d.Bar.Set(dp)
 	}
 	return
 }
@@ -384,20 +384,12 @@ func StopApp() {
 			log.Error(err)
 			return
 		}
-		// log.Info(n, pid, p.Pid, n == SVCConfig.Name+".exe",
-		// 	n == SVCConfig.Name+"-no-console.exe",
-		// 	n == SVCConfig.Name || n == SVCConfig.Name+".exe" || n == SVCConfig.Name+"-core.exe")
-		// log.Info(nint.ToInt32(pid) != p.Pid &&
-		// 	(strings.Contains(n, conf.SVCConfig.Name) ||
-		// 		n == conf.SVCConfig.Name ||
-		// 		n == conf.SVCConfig.Name+"-core" ||
-		// 		n == conf.SVCConfig.Name+".exe" ||
-		// 		n == conf.SVCConfig.Name+"-core.exe"))
 		if nint.ToInt32(pid) != p.Pid &&
 			(n == conf.SVCConfig.Name ||
 				n == conf.SVCConfig.Name+".exe" ||
 				n == conf.SVCConfig.Name+"-core" ||
 				n == conf.SVCConfig.Name+"-core.exe") {
+			p.SendSignal(syscall.SIGINT)
 			if err = p.Kill(); err != nil {
 				log.Error(n+" Error:", err)
 			} else {
@@ -405,18 +397,6 @@ func StopApp() {
 			}
 		}
 	}
-
-	// switch sysType {
-	// case "windows":
-	// 	// 需要检测是服务的形式启动的还是直接启动
-	// 	mwinsvc.StopService(SVCConfig.Name)
-	// default:
-	// log.Info("正在停用服务")
-	// if err := svc.Stop(); err != nil {
-	// 	log.Error(err)
-	// }
-
-	// }
 
 }
 
@@ -437,7 +417,7 @@ func FinalUpgrade(flagUpdateRestart bool) {
 	log.Info(unzipPath, nfile.IsExists(unzipPath))
 
 	log.Info(path)
-	// StopApp()
+	StopApp()
 	log.Info(tempZipPath)
 	if !nfile.IsExists(unzipPath) {
 		log.Error("解压路径不存在")
@@ -484,30 +464,46 @@ func FinalUpgrade(flagUpdateRestart bool) {
 		// 	log.Error(err)
 		// }
 
-		// switch sysType {
-		// case "linux":
 		executableFilePath := filepath.Join(filepath.Dir(path), "./"+conf.SVCConfig.Name)
 		switch sysType {
 		case "windows":
 			executableFilePath += ".exe"
 		}
-		process, err := os.StartProcess(executableFilePath, append([]string{"-no-browser"}, pargs...), &os.ProcAttr{
-			Dir: filepath.Dir(path),
-			Files: []*os.File{
-				os.Stdin, os.Stdout, os.Stderr,
-			},
-			Env: os.Environ(),
-			Sys: &syscall.SysProcAttr{},
-		})
+		switch sysType {
+		case "linux":
+			process, err := os.StartProcess(executableFilePath, append([]string{"-no-browser"}, pargs...), &os.ProcAttr{
+				Dir: filepath.Dir(path),
+				Files: []*os.File{
+					os.Stdin, os.Stdout, os.Stderr,
+				},
+				Env: os.Environ(),
+				Sys: &syscall.SysProcAttr{},
+			})
 
-		if err != nil {
-			log.Error(err)
-			return
+			if err != nil {
+				log.Error(err)
+				return
+			}
+
+			// process.Wait()
+			log.Error("process", process)
+		case "windows":
+			// 	methods.OpenApp(nil)
+
+			cmd := exec.Command("cmd.exe", append([]string{"/c", "start", executableFilePath, "-no-browser"}, pargs...)...)
+
+			if err := cmd.Start(); err != nil {
+				log.Error(err)
+				return
+			}
+			// 关闭当前窗口
+			// taskkill /FI "imagename eq meow-backups.exe" /F
+			// taskkill /FI "WINDOWTITLE eq D:\BackupShare\Downloads\apps\build\meow-backups-v1.0.0-win-amd64-x64\meow-backups.exe" /F
+			// if err := exec.Command("exit").Start(); err != nil {
+			// 	log.Error(err)
+			// 	return
+			// }
 		}
-
-		// process.Wait()
-		log.Error("process", process)
-		// case "windows":
 		// 	executableFilePath := filepath.Join(filepath.Dir(path), "./bin/"+conf.SVCConfig.Name+"-core")
 		// 	switch sysType {
 		// 	case "windows":

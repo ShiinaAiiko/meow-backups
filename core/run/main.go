@@ -49,6 +49,8 @@ func main() {
 		return
 	}
 	log.Info("Meow Backups < " + conf.Version + " >")
+	log.Info(os.Args)
+	log.Info(os.Executable())
 	methods.InitLock()
 	methods.OpenApp(nil)
 }
@@ -62,7 +64,7 @@ func WatchExit() {
 		syscall.SIGQUIT)
 
 	go func() {
-		<-signalChan
+		log.Info(<-signalChan)
 		log.Info("正在退出程序中...")
 		methods.DeleteLock()
 		methods.StopApp()

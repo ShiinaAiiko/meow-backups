@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"github.com/cherrai/nyanyago-utils/ncommon"
 	"github.com/cherrai/nyanyago-utils/nfile"
 )
 
@@ -93,9 +94,9 @@ func initPath() bool {
 
 	switch runtime.GOOS {
 	case "windows":
-		ConfigFolderPath = filepath.Join(HomePath, "/AppData/Local/meow-backups")
+		ConfigFolderPath = filepath.Join(HomePath, "/AppData/Local/"+SVCConfig.Name+ncommon.IfElse(Config.Debug, "-debug", ""))
 	default:
-		ConfigFolderPath = filepath.Join(HomePath, "/.config/meow-backups")
+		ConfigFolderPath = filepath.Join(HomePath, "/.config/"+SVCConfig.Name+ncommon.IfElse(Config.Debug, "-debug", ""))
 	}
 	DatabasePath = filepath.Join(ConfigFolderPath, "./s/fs.db")
 	// log.Warn("DatabasePath", DatabasePath)

@@ -4,9 +4,12 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"runtime"
 
+	"github.com/cherrai/nyanyago-utils/ncommon"
 	"github.com/cherrai/nyanyago-utils/nfile"
+	"github.com/cherrai/nyanyago-utils/nstrings"
 
 	conf "github.com/ShiinaAiiko/meow-backups/config"
 	"github.com/ShiinaAiiko/meow-backups/services/methods"
@@ -92,21 +95,42 @@ Options:
 
 func FlagParse() bool {
 	flag.Parse()
-
-	if nfile.IsExists(*flagConfigFilePath) && *flagConfigFilePath != "" {
-		if err := conf.GetConfig(*flagConfigFilePath); err != nil {
+	path, _ := os.Executable()
+	dirPath := filepath.Dir(path)
+	configFilePath := filepath.Join(dirPath, *flagConfigFilePath)
+	if nfile.IsExists(configFilePath) && *flagConfigFilePath != "" {
+		if err := conf.GetConfig(configFilePath); err != nil {
 			log.Error(err)
 			return false
 		}
 	}
-	// conf.Config.Port = methods.GetValidPort(*flagPort)
-	conf.Config.Port = *flagPort
-	conf.Config.StaticPath = *flagStaticPath
-	conf.Config.Debug = *flagDebug
-	conf.Config.NoBrowser = *flagNoBrowser
-	conf.Config.NoConsole = *flagNoConsole
-	conf.Config.DefaultUser = *flagDefalutUser
+	log.Info(*flagConfigFilePath)
+	log.Info(configFilePath)
+	log.Info(conf.Config)
+	log.Info(conf.Config.Port)
+	log.Info(conf.Config.Debug)
+	log.Info(*flagPort)
+	log.Info(*flagDebug)
+	// log.Info(*flagPort, conf.Config.Port, ncommon.IfElse(*flagPort != 30301,
+	// 	*flagPort, conf.Config.Port))
+	conf.Config.Port = ncommon.IfElse(*flagPort != 30301,
+		*flagPort, conf.Config.Port)
+	// log.Info(*flagPort, conf.Config.Port, ncommon.IfElse(*flagPort != 30301,
+	// 	*flagPort, conf.Config.Port))
+	conf.Config.StaticPath = nstrings.StringOr(ncommon.IfElse(*flagStaticPath != "./config.json",
+		*flagStaticPath, conf.Config.StaticPath), "./config.json")
+	conf.Config.Debug = ncommon.IfElse(*flagDebug,
+		*flagDebug, conf.Config.Debug)
+	conf.Config.NoBrowser = ncommon.IfElse(*flagNoBrowser,
+		*flagNoBrowser, conf.Config.NoBrowser)
+	conf.Config.NoConsole = ncommon.IfElse(*flagNoConsole,
+		*flagNoConsole, conf.Config.NoConsole)
+	conf.Config.DefaultUser = ncommon.IfElse(*flagDefalutUser,
+		*flagDefalutUser, conf.Config.DefaultUser)
 
+	log.Info(conf.Config)
+	log.Info(conf.Config.Port)
+	log.Info(conf.Config.Debug)
 	switch sysType {
 	case "windows":
 		// log.Info("看看这是什么", winsvc.InServiceMode(), winsvc.IsAnInteractiveSession())
@@ -180,7 +204,6 @@ func FlagParse() bool {
 	if *flagIsAutoStart {
 		if methods.IsAutoStart() {
 			log.Println(os.Stdout, "enabled")
-			return true
 		} else {
 			log.Println(os.Stdout, "disabled")
 		}

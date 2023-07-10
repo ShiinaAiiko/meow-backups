@@ -22,13 +22,13 @@ var (
 
 func init() {
 	nlog.SetPrefixTemplate("[{{Timer}}] [{{Type}}] [{{Date}}] [{{File}}]@{{Name}}")
-	nlog.SetName("meow-backups-core")
+	nlog.SetName("mbc")
 }
 
 func main() {
 	defer func() {
 		if err := recover(); err != nil {
-			log.Error(err)
+			log.FullCallChain(err.(error).Error(), "Error")
 		}
 	}()
 
@@ -56,9 +56,41 @@ func main() {
 	// 	// methods.CheckForUpdates()
 	// 	fmt.Printf("example1: %s-%s.%s\n", version, gitRev, buildTime)
 	// }, 1000)
-	methods.ScheduledBackup()
+	methods.ScheduledBackup(true)
 	// 创建lock文件
 	methods.InitLock()
+
+	// ntimer.SetTimeout(func() {
+	// 	m := map[string]map[string][]byte{}
+	// 	jsonV, err := json.Marshal(m)
+	// 	if err != nil {
+	// 		return
+	// 	}
+	// 	log.Info(string(jsonV), len(jsonV), len(m))
+	// 	if string(jsonV) == "" {
+	// 		log.Error("db.modelData is nil")
+	// 		return
+	// 	}
+	// 	// var wg sync.WaitGroup
+	// 	// // mutex := new(sync.RWMutex)
+	// 	// log.Info(runtime.NumCPU())
+	// 	// ch := make(chan struct{}, runtime.NumCPU())
+
+	// 	// for i := 0; i < 1000; i++ {
+	// 	// 	ch <- struct{}{}
+	// 	// 	wg.Add(1)
+
+	// 	// 	go func(i int) {
+	// 	// 		defer wg.Done()
+	// 	// 		ntimer.SetTimeout(func() {
+	// 	// 			log.Info(i)
+	// 	// 			<-ch
+	// 	// 		}, 1000)
+	// 	// 	}(i)
+	// 	// }
+	// 	// // fmt.Println(wg)
+	// 	// wg.Wait()
+	// }, 1000)
 	server.Init()
 }
 
@@ -71,7 +103,7 @@ func WatchExit() {
 		syscall.SIGQUIT)
 
 	go func() {
-		<-signalChan
+		log.Info(<-signalChan)
 		log.Info("正在退出程序中...")
 		methods.DeleteLock()
 		methods.StopApp()

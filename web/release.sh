@@ -2,7 +2,7 @@
 appName="meow-sticky-note"
 name="${appName}-client"
 port=16111
-version=1.0.2
+version=$2
 branch="main"
 # configFilePath="config.dev.json"
 # webConfigFilePath="config.pro.temp.json"
@@ -46,10 +46,10 @@ dockerremove() {
 }
 
 build() {
-  echo "-> 正在启动「${name}」服务"
+  echo "-> 正在启动「${name}<$version>」服务"
+  # sed -i "s/\"version\":.*$/\"version\":\"${version:1}\",/" ./package.json
 
-  npmconfig
-
+  # npmconfig
   echo "-> 正在准备相关资源"
   cp -r ../protos $DIR/protos_temp
   cp -r ./$webConfigFilePath $DIR/src/config.temp.json
@@ -62,7 +62,7 @@ build() {
   yarn build_to_el
 
   download:saki-ui
-  
+
   rm -rf ../build/static
   mkdir ../build/static
   cp -r ./build/* ../build/static
@@ -187,7 +187,7 @@ el:install() {
 }
 
 download:saki-ui() {
-  wget https://saki-ui.aiiko.club/saki-ui.tgz
+  wget https://saki-ui.aiiko.club/packages/saki-ui-v1.0.0.tgz -O saki-ui.tgz
   tar zxvf ./saki-ui.tgz -C ./build
   rm -rf ./saki-ui*
 }

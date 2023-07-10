@@ -9,7 +9,7 @@ import exp from 'constants'
 import { useDispatch } from 'react-redux'
 import { storageMethods, storageSlice } from './storage'
 import deviceToken, { slice as deviceTokenSlice } from './deviceToken'
-import app, { slice as appSlice } from './app'
+import app, { slice as appSlice, methods as appMethods } from './app'
 import backups, { slice as backupsSlice } from './backups'
 import { configMethods, configSlice } from './config'
 import { userMethods, userSlice } from './user'
@@ -61,7 +61,7 @@ export const methods = {
 	sso: ssoMethods,
 	deviceToken: deviceToken.methods,
 	backups: backups.methods,
-	app: app.methods,
+	app: appMethods,
 }
 
 // console.log(store.getState())

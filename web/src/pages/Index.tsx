@@ -116,13 +116,13 @@ const IndexPage = () => {
 									const lastBackupTime = !v.lastBackupTime
 										? t('neverBackedUp')
 										: moment(Number(v.lastBackupTime) * 1000).format(
-												'YYYY-MM-DD hh:mm:ss'
+												'YYYY-MM-DD HH:mm:ss'
 										  )
 									const nextBackupTime = !v.lastBackupTime
 										? t('neverBackedUp')
 										: moment(
 												(Number(v.lastBackupTime) + Number(v.interval)) * 1000
-										  ).format('YYYY-MM-DD hh:mm:ss')
+										  ).format('YYYY-MM-DD HH:mm:ss')
 									return (
 										<div
 											key={sid}
@@ -146,7 +146,7 @@ const IndexPage = () => {
 															v.type === 'Folder' ? 'FolderFill' : 'FileFill'
 														}
 													/>
-													<span>{v.name}</span>
+													<span  className='text-two-elipsis'>{v.name}</span>
 												</div>
 												<div className={'item-h-right '}>
 													<div
@@ -165,14 +165,17 @@ const IndexPage = () => {
 													>
 														<span
 															style={
-																i18n.language === 'en-US' &&
+                                {
+                                  ...(i18n.language === 'en-US' &&
 																!v.deleteOldDataWhenSizeExceeds &&
 																Number(v.backupFolderStatus?.size) >=
 																	Number(v.maximumStorageSize) * 1024 * 1024
 																	? {
 																			fontSize: '12px',
 																	  }
-																	: {}
+																	: {}),   
+                                  whiteSpace: "nowrap"
+                                }
 															}
 														>
 															{!v.deleteOldDataWhenSizeExceeds &&
@@ -407,7 +410,8 @@ const IndexPage = () => {
 																				if (sv.id === v.id) {
 																					return {
 																						...sv,
-																						status: 0,
+                                            status: 0,
+                                            backupProgress:0,
 																					}
 																				}
 																				return sv
@@ -550,7 +554,7 @@ const IndexPage = () => {
 									? t('neverBackedUp')
 									: moment(
 											Number(app.appSummaryInfo?.lastBackupTime) * 1000
-									  ).format('YYYY-MM-DD hh:mm:ss')}
+									  ).format('YYYY-MM-DD HH:mm:ss')}
 							</div>
 						</div>
 						<div className='ip-r-cd-item'>
@@ -592,7 +596,7 @@ const IndexPage = () => {
 									<saki-button
 										ref={bindEvent({
 											tap: () => {
-                        dispatch(methods.app.update())
+												dispatch(methods.app.update())
 											},
 										})}
 										margin='0 0 0 6px'

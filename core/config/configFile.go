@@ -3,6 +3,7 @@ package conf
 import (
 	"encoding/json"
 	"os"
+	"path/filepath"
 
 	"github.com/ShiinaAiiko/meow-backups/typings"
 	"github.com/cherrai/nyanyago-utils/ncommon"
@@ -18,13 +19,16 @@ var (
 
 func CreateConfig() {
 	// 1、获取之前的配置文件
-	oldConfig := GetConfigMap("./config.json")
+	path, _ := os.Executable()
+	dirPath := filepath.Dir(path)
+
+	oldConfig := GetConfigMap(filepath.Join(dirPath, "./config.json"))
 	// log.Info("oldConfig", oldConfig)
 
 	// 2、获取目标配置文件
 
 	targetConfig := GetConfigMap(ncommon.IfElse(
-		BuildTime == "", "./config.dev.json", "./config/config.pro.json",
+		BuildTime == "", filepath.Join(dirPath, "./config.dev.json"), filepath.Join(dirPath, "./config/config.pro.json"),
 	))
 	// log.Info("targetConfig", targetConfig)
 
@@ -41,7 +45,7 @@ func CreateConfig() {
 	// log.Info("oldConfig", oldConfig)
 
 	// 4、写入数据
-	writeConfigFile("./config.json", oldConfig)
+	writeConfigFile(filepath.Join(dirPath, "./config.json"), oldConfig)
 }
 
 func writeConfigFile(configPath string, data map[string]interface{}) {
