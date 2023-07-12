@@ -400,6 +400,8 @@ func (fc *AppController) UpdateSystemConfig(c *gin.Context) {
 		res.Call(c)
 		return
 	}
+	// systray.Quit()
+	conf.TraybarEvent.Dispatch("UpdateMenu", "")
 	res.Data = protos.Encode(&protos.UpdateSystemConfig_Response{})
 	res.Call(c)
 }

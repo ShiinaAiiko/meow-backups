@@ -133,13 +133,6 @@ const IndexLayout = ({ children }: RouterProps) => {
 	}, [nsocketio.status])
 
 	useEffect(() => {
-		console.log(
-			'appStatus.sakiUIInitStatus && nsocketio.status',
-			appStatus.sakiUIInitStatus,
-			nsocketio.status,
-			startAlert,
-			appStatus.sakiUIInitStatus && nsocketio.status === 'success'
-		)
 		if (appStatus.sakiUIInitStatus) {
 			startAlert.s === 0 && startAlert.a.open()
 			startAlert.s = 1

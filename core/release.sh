@@ -37,7 +37,7 @@ buildlinux() {
   rm -rf ../build/bin/meow-backups-upgrade
 
   echo "-> 正在编译核心程序"
-  CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+  CGO_ENABLED=1 GOOS=linux GOARCH=amd64 \
     go build \
     -ldflags "\
   -X $packageName.Version=${version} \
@@ -95,7 +95,10 @@ buildwin() {
   # mv meow-backups.exe ../build/meow-backups.exe
 
   echo "-> 正在编译核心程序"
-  CGO_ENABLED=0 GOOS=windows GOARCH=amd64 \
+
+  # 1 CC=x86_64-w64-mingw64-gcc
+  CGO_ENABLED=0 \
+    GOOS=windows GOARCH=386 \
     go build \
     -ldflags "\
   -H=windowsgui \
@@ -166,6 +169,13 @@ build() {
   mkdir -p ../build/config
   rm -rf ../build/config/config*.json
   cp -r ./run/config.pro.json ../build/config
+
+  # sudo apt-get install gcc libgtk-3-dev libayatana-appindicator3-dev
+  # sudo apt-get install gcc-mingw-w64-x86-64
+
+  # traybar:
+  # linux icon：2goarray MyArray mypackage < ./iconwin.ico > myimage.go
+  # windows icon：./make_icon.sh ./256x256.png
   buildlinux
   buildwin
   # cd ../run

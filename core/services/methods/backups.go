@@ -293,6 +293,7 @@ func PauseBackup(bi *protos.BackupItem) error {
 		conf.BackupsFS.Set(bi.Id, bi, 0)
 		ScheduledBackupItem(bi)
 		EmitMessage(bi)
+		conf.TraybarEvent.Dispatch("SetTitle", "")
 
 		log.Info("已暂停备份")
 		if backupPath != "" {
@@ -372,6 +373,7 @@ func BackupNow(bi *protos.BackupItem) {
 		// log.Error("backupPathMap", backupPathMap[bi.Id], 1, backupPathMap[bi.Id] == "", 2)
 		if backupPathMap[bi.Id] == "" {
 			t.Stop()
+			conf.TraybarEvent.Dispatch("SetTitle", "")
 			return
 		}
 
@@ -385,6 +387,7 @@ func BackupNow(bi *protos.BackupItem) {
 			ScheduledBackupItem(bi)
 			EmitMessage(bi)
 			t.Stop()
+			conf.TraybarEvent.Dispatch("SetTitle", "")
 			return
 		}
 		if cSize == 0 {
@@ -395,11 +398,13 @@ func BackupNow(bi *protos.BackupItem) {
 		bp := float32(cSize) / float32(pfs.Size)
 		// log.Info(cSize, pfs.Size, bp)
 		log.Info("-> 已备份", fmt.Sprintf("%.2f%%", bp))
+		conf.TraybarEvent.Dispatch("SetTitle", fmt.Sprintf("%.2f%%", bp))
 		if bp >= 1 {
 			bi.LastBackupTime = time.Now().Unix()
 			bi.Status = 0
 			bi.BackupProgress = 1
 			log.Info("备份结束了。", t, includesMatches)
+			conf.TraybarEvent.Dispatch("SetTitle", "Finished")
 			go UpdateBackupStats(bi)
 			t.Stop()
 			ntimer.SetTimeout(func() {
@@ -409,12 +414,14 @@ func BackupNow(bi *protos.BackupItem) {
 				conf.BackupsFS.Set(bi.Id, bi, 0)
 
 				log.Info("备份结束了。")
+				conf.TraybarEvent.Dispatch("SetTitle", "")
 
 				backupPathMap[bi.Id] = ""
 				ScheduledBackupItem(bi)
 				EmitMessage(bi)
 			}, 1000)
 		} else {
+
 			bi.BackupProgress = bp
 			bi.Status = 0
 		}

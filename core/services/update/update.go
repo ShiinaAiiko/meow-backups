@@ -65,8 +65,8 @@ func CheckForUpdates() (*VersionItem, error) {
 				startIndex := strings.Index(fileName, conf.SVCConfig.Name)
 				endIndex := strings.Index(fileName, conf.Platform)
 				if startIndex >= 0 && endIndex >= 0 {
-					log.Info(fileName)
-					log.Info(version, conf.Platform, conf.Version)
+					// log.Info(fileName)
+					// log.Info(version, conf.Platform, conf.Version)
 
 					newVersion := fileName[startIndex+len(conf.SVCConfig.Name)+1 : endIndex-1]
 
@@ -389,6 +389,8 @@ func StopApp() {
 				n == conf.SVCConfig.Name+".exe" ||
 				n == conf.SVCConfig.Name+"-core" ||
 				n == conf.SVCConfig.Name+"-core.exe") {
+
+			log.Warn("Killed the process with pid " + nstrings.ToString(p.Pid))
 			p.SendSignal(syscall.SIGINT)
 			if err = p.Kill(); err != nil {
 				log.Error(n+" Error:", err)

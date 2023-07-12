@@ -104,13 +104,13 @@ func FlagParse() bool {
 			return false
 		}
 	}
-	log.Info(*flagConfigFilePath)
-	log.Info(configFilePath)
-	log.Info(conf.Config)
-	log.Info(conf.Config.Port)
-	log.Info(conf.Config.Debug)
-	log.Info(*flagPort)
-	log.Info(*flagDebug)
+	// log.Info(*flagConfigFilePath)
+	// log.Info(configFilePath)
+	// log.Info(conf.Config)
+	// log.Info(conf.Config.Port)
+	// log.Info(conf.Config.Debug)
+	// log.Info(*flagPort)
+	// log.Info(*flagDebug)
 	// log.Info(*flagPort, conf.Config.Port, ncommon.IfElse(*flagPort != 30301,
 	// 	*flagPort, conf.Config.Port))
 	conf.Config.Port = ncommon.IfElse(*flagPort != 30301,
@@ -128,9 +128,9 @@ func FlagParse() bool {
 	conf.Config.DefaultUser = ncommon.IfElse(*flagDefalutUser,
 		*flagDefalutUser, conf.Config.DefaultUser)
 
-	log.Info(conf.Config)
-	log.Info(conf.Config.Port)
-	log.Info(conf.Config.Debug)
+	// log.Info(conf.Config)
+	// log.Info(conf.Config.Port)
+	// log.Info(conf.Config.Debug)
 	switch sysType {
 	case "windows":
 		// log.Info("看看这是什么", winsvc.InServiceMode(), winsvc.IsAnInteractiveSession())

@@ -66,125 +66,27 @@ func NoConsoleRunApp() {
 	if !conf.Config.NoBrowser {
 		OpenUrl("http://127.0.0.1:" + nstrings.ToString(conf.Config.Port))
 	}
-	p, err := os.Executable()
-	if err != nil {
-		log.Error(err)
-	}
+	var err error
+	cmdPath, args := GetArgs()
+
+	log.Info(cmdPath, args)
 	switch sysType {
 	case "windows":
-		// 需要检测是否设置了自启，是的则不用安装或卸载服务
-		// mwinsvc.InstallService(conf.AppInfoConfig.AppPath,
-		// 	conf.AppInfoConfig.ServiceName,
-		// 	conf.AppInfoConfig.ServiceDesc)
-		// mwinsvc.StartService(conf.AppInfoConfig.ServiceName)
-		// mwinsvc.RemoveService(conf.AppInfoConfig.ServiceName)
-
-		// log.Info("正在安装服务")
-		// if err := svc.Install(); err != nil {
-		// 	log.Error(err)
-		// }
-		// log.Info("正在启动服务")
-		// // mwinsvc.StartService(conf.AppInfoConfig.ServiceName)
-		// if err := svc.Start(); err != nil {
-		// 	log.Error(err)
-		// }
-		// log.Info("正在卸载服务")
-		// if err := svc.Uninstall(); err != nil {
-		// 	log.Error(err)
-		// }
-
-		// // 使用sh
-		// nohup ./meow-backups >/dev/null 2>&1 &
-		// log.Info(path.Join(path.Dir(p), "bin/run.sh"), "noConsole")
-		// log.Info(os.Args[1:])
-		// log.Info(conf.StaticPath, path.Join(path.Dir(p), "./bin/meow-backups-no-console.exe"), narrays.Filter(append(os.Args[1:], "static-path='../static'"), func(v string) bool {
-		// 	return v != "-no-console"
-		// }), path.Join("../static", "a.jpg"))
-		// log.Info(path.Join(path.Dir(p), "./bin/run.sh"), append([]string{"noConsole"}, os.Args[1:]...))
-		// ntimer.SetTimeout(func() {
-		// 	log.Info("...")
-		// 	os.Exit(0)
-		// }, 1500)
-		err = exec.Command(filepath.Join(filepath.Dir(p), "./bin/meow-backups-core.exe"), narrays.Filter(os.Args[1:], func(v string) bool {
+		err = exec.Command(cmdPath, narrays.Filter(args, func(v string) bool {
 			return v != "-no-console"
 		})...).Start()
 		if err != nil {
 			log.Error(err)
 		}
-		// log.Info("out", string(out))
 	case "linux":
 
-		if err = exec.Command(filepath.Join(filepath.Dir(p), "./bin/meow-backups-core"), narrays.Filter(os.Args[1:], func(v string) bool {
+		if err = exec.Command(cmdPath, narrays.Filter(args, func(v string) bool {
 			return v != "-no-console"
 		})...).Start(); err != nil {
 			log.Error(err)
 		}
 
-		// 后续改为 检测是否自启动，是则仅启动，否则删除
-		// sStatus, err := svc.Status()
-		// if err != nil {
-		// 	log.Error(err)
-		// }
-		// log.Info(sStatus, sStatus != 1)
-		// if sStatus != 1 {
-		// log.Info("正在安装服务")
-		// if err := svc.Install(); err != nil {
-		// 	log.Error(err)
-		// }
-
-		// log.Info("正在启动服务")
-		// // mwinsvc.StartService(conf.AppInfoConfig.ServiceName)
-		// if err := svc.Start(); err != nil {
-		// 	log.Error(err)
-		// }
-		// log.Info("正在卸载服务")
-		// if err := svc.Uninstall(); err != nil {
-		// 	log.Error(err)
-		// }
-		// } else {
-		// 	log.Info("正在启动服务")
-		// 	if err := svc.Start(); err != nil {
-		// 		log.Error(err)
-		// 	}
-		// }
-
-		// // 使用nohup
-		// path, err := os.Executable()
-		// if err != nil {
-		// 	log.Error(err)
-		// }
-		// // nohup ./meow-backups >/dev/null 2>&1 &
-		// out, err := exec.Command("nohup", path, ">/dev/null", " 2>&1", "&").CombinedOutput()
-		// if err != nil {
-		// 	log.Error("cmd.Run() failed with %s\n", err)
-		// }
-		// log.Info(out)
-
-		// // 使用sh
-		// // nohup ./meow-backups >/dev/null 2>&1 &
-		// // log.Info(path.Join(path.Dir(p), "bin/run.sh"), "noConsole")
-		// // log.Info(os.Args[1:])
-		// log.Info(path.Join(path.Dir(p), "./bin/run.sh"),
-		// 	narrays.Filter(append([]string{"noConsoleLinux"}, os.Args[1:]...), func(v string) bool {
-		// 		return v != "-no-console"
-		// 	}))
-		// // log.Info(path.Join(path.Dir(p), "./bin/run.sh"), append([]string{"noConsole"}, os.Args[1:]...))
-		// out, err := exec.Command(path.Join(path.Dir(p), "./bin/run.sh"), narrays.Filter(append([]string{"noConsoleLinux"}, os.Args[1:]...), func(v string) bool {
-		// 	return v != "-no-console"
-		// })...).CombinedOutput()
-		// if err != nil {
-		// 	log.Error("cmd.Run() failed with %s\n", err)
-		// }
-		// log.Info("out", string(out))
-
 	}
-	// signals := make(chan os.Signal, 1)
-	// signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
-
-	// log.Info("Started")
-
-	// <-signals
-	// log.Info("Exited")
 
 }
 func StartService() {
@@ -313,9 +215,10 @@ func CloseAutoStart() {
 }
 
 func StopApp() {
-	// log.Info(mainProcess)
+	log.Info("mainProcess", mainProcess)
 	if mainProcess != nil {
 		// log.Info(mainProcess.Pid)
+		log.Warn("Killed the process with pid " + nstrings.ToString(mainProcess.Pid))
 		mainProcess.Signal(syscall.SIGINT)
 		if err := mainProcess.Kill(); err != nil {
 			log.Error(err)
@@ -340,35 +243,12 @@ func UninstallService() {
 	}
 }
 
-func OpenApp(logFunc func(stdout io.ReadCloser, l string)) {
-
-	log.Info("正在启动 Meow Backups<" + conf.Version + ", " + conf.Platform + ">")
-	// log.Warn("打开浏览器吗", !conf.NoBrowser)
-	if !conf.Config.NoBrowser {
-		OpenUrl("http://127.0.0.1:" + nstrings.ToString(conf.Config.Port))
-	}
-	// log.Info("开始执行！")
-	// 正常启动
-	// 根据启动配置，确定是否需要对应参数
-
-	p, err := os.Executable()
-	if err != nil {
-		log.Error(err)
-		return
-	}
-	// log.Info("NoConsole => ", conf.NoConsole)
-	// cmdPath := filepath.Join(filepath.Dir(p), "./bin/run.sh")
+func GetArgs() (string, []string) {
+	p, _ := os.Executable()
 	cmdPath := filepath.Join(filepath.Dir(p), "./bin/meow-backups-core")
 	if sysType == "windows" {
 		cmdPath += ".exe"
 	}
-
-	// args := append(
-	// 	os.Args[1:],
-	// 	"-port="+nstrings.ToString(conf.Port),
-	// 	"-no-browser",
-	// )
-
 	args := []string{
 		// cmdPath,
 		"-port=" + nstrings.ToString(conf.Config.Port),
@@ -386,13 +266,26 @@ func OpenApp(logFunc func(stdout io.ReadCloser, l string)) {
 	if conf.Config.DefaultUser {
 		args = append(args, "-default-user")
 	}
-
-	// if conf.Mode == "debug" {
-	// 	args = append(
-	// 		args,
-	// 		"-debug",
-	// 	)
+	// switch sysType {
+	// case "linux":
+	// 	args = append([]string{cmdPath}, args...)
 	// }
+	return cmdPath, args
+}
+
+func OpenApp(logFunc func(stdout io.ReadCloser, l string)) {
+
+	log.Info("正在启动 Meow Backups<" + conf.Version + ", " + conf.Platform + ">")
+	// log.Warn("打开浏览器吗", !conf.NoBrowser)
+	if !conf.Config.NoBrowser {
+		OpenUrl("http://127.0.0.1:" + nstrings.ToString(conf.Config.Port))
+	}
+	// log.Info("开始执行！")
+	// 正常启动
+	// 根据启动配置，确定是否需要对应参数
+
+	p, _ := os.Executable()
+	cmdPath, args := GetArgs()
 
 	pid := os.Getpid()
 	log.Info("args => ", args)
@@ -403,7 +296,7 @@ func OpenApp(logFunc func(stdout io.ReadCloser, l string)) {
 
 	switch sysType {
 	case "linux":
-		mainProcess, err = os.StartProcess(cmdPath, append([]string{cmdPath}, args...), &os.ProcAttr{
+		mainProcess, err := os.StartProcess(cmdPath, append([]string{cmdPath}, args...), &os.ProcAttr{
 			Dir: filepath.Dir(p),
 			Files: []*os.File{
 				os.Stdin, os.Stdout, os.Stderr,
@@ -531,6 +424,7 @@ func InitLock() {
 				if err != nil {
 					// log.Error(err)
 				} else {
+					log.Warn("Killed the process with pid " + nstrings.ToString(mainProcess.Pid))
 					if err := p.Kill(); err != nil {
 						log.Error(err)
 					}

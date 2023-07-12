@@ -18,6 +18,7 @@ var (
 func init() {
 	nlog.SetPrefixTemplate("[{{Timer}}] [{{Type}}] [{{Date}}] [{{File}}]@{{Name}}")
 	nlog.SetName("meow-backups-upgrade")
+	nlog.SetOutputFile("./logs/output.log", 1024*1024*10)
 }
 
 // cmd.exe /C start .\meow-backups

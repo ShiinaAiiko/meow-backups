@@ -13,6 +13,7 @@ import (
 	flagconfig "github.com/ShiinaAiiko/meow-backups/flag"
 	"github.com/ShiinaAiiko/meow-backups/services/methods"
 	"github.com/ShiinaAiiko/meow-backups/services/server"
+	"github.com/ShiinaAiiko/meow-backups/traybar"
 	"github.com/cherrai/nyanyago-utils/nlog"
 )
 
@@ -23,6 +24,7 @@ var (
 func init() {
 	nlog.SetPrefixTemplate("[{{Timer}}] [{{Type}}] [{{Date}}] [{{File}}]@{{Name}}")
 	nlog.SetName("mbc")
+	nlog.SetOutputFile("./logs/output.log", 1024*1024*10)
 }
 
 func main() {
@@ -37,9 +39,11 @@ func main() {
 		p, err := process.NewProcess(nint.ToInt32(parent))
 		if err != nil {
 			log.Error(err)
-		}
-		if err := p.Kill(); err != nil {
-			log.Error(err)
+		} else {
+			log.Warn("Killed the process with pid " + parent)
+			if err := p.Kill(); err != nil {
+				log.Error(err)
+			}
 		}
 	}
 	log.Info("开始运行 Meow Backups Core!")
@@ -91,6 +95,14 @@ func main() {
 	// 	// // fmt.Println(wg)
 	// 	// wg.Wait()
 	// }, 1000)
+	// ntimer.SetTimeout(func() {
+	// 	path := "./logs/output.log"
+	// 	log.Info(filepath.Dir(path))
+	// 	log.Info(filepath.Base(path))
+	// 	log.Info(filepath.Ext(path))
+	// 	log.Info("./" + filepath.Join(filepath.Dir(path), strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))+"_"+time.Now().Format("20060102150405")+filepath.Ext(path)))
+	// }, 1000)
+	traybar.Install()
 	server.Init()
 }
 

@@ -21,6 +21,7 @@ var (
 func init() {
 	nlog.SetPrefixTemplate("[{{Timer}}] [{{Type}}] [{{Date}}] [{{File}}]@{{Name}}")
 	nlog.SetName("meow-backups")
+	nlog.SetOutputFile("./logs/output.log", 1024*1024*10)
 }
 
 func main() {
@@ -35,6 +36,7 @@ func main() {
 		if err != nil {
 			log.Error(err)
 		} else {
+			log.Warn("Killed the process with pid " + parent)
 			if err := p.Kill(); err != nil {
 				log.Error(err)
 			}
