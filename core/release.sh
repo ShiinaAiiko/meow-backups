@@ -98,7 +98,7 @@ buildwin() {
 
   # 1 CC=x86_64-w64-mingw64-gcc
   CGO_ENABLED=0 \
-    GOOS=windows GOARCH=386 \
+    GOOS=windows GOARCH=amd64 \
     go build \
     -ldflags "\
   -H=windowsgui \

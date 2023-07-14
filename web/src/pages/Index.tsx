@@ -21,6 +21,7 @@ import { eventListener, eventTarget } from '../store/config'
 import { nsocketio } from '../config'
 import socketApi from '../modules/socketio/api'
 import { protoRoot } from '../protos'
+import { sortList } from '../store/backups'
 
 const IndexPage = () => {
 	const [debounce] = useState(new Debounce())
@@ -37,6 +38,7 @@ const IndexPage = () => {
 
 	const [showId, setShowId] = useState('')
 	const [timeNow, setTimeNow] = useState(0)
+	const [backupSortDropdown, setBackupSortDropdown] = useState(false)
 
 	useEffect(() => {
 		debounce.increase(async () => {
@@ -46,7 +48,6 @@ const IndexPage = () => {
 
 				!timeNow &&
 					setInterval(() => {
-						console.log(3)
 						// console.log(nextBackupTime - new Date().getTime())
 						setTimeNow(new Date().getTime())
 					}, 1000)
@@ -114,12 +115,84 @@ const IndexPage = () => {
 			<saki-scroll-view mode='Auto'>
 				<div className={'index-page ' + config.deviceType}>
 					<div className='ip-left'>
-						<saki-title level='3' font-weight='400' font-size='24px'>
-							{t('backupTask', {
-								ns: 'indexPage',
-							})}{' '}
-							({backups.list.length})
-						</saki-title>
+						<div className='ip-l-header'>
+							<saki-title level='3' font-weight='400' font-size='24px'>
+								{t('backupTask', {
+									ns: 'indexPage',
+								})}{' '}
+								({backups.list.length})
+							</saki-title>
+							<saki-dropdown
+								visible={backupSortDropdown}
+								floating-direction='Center'
+								ref={bindEvent({
+									close: (e) => {
+										setBackupSortDropdown(false)
+									},
+								})}
+							>
+								<div
+									onClick={() => {
+										setBackupSortDropdown(true)
+									}}
+									className='ip-l-h-sort'
+								>
+									<saki-icon
+										color='#666'
+										margin='0 4px 0 0'
+										type='ListSort'
+									></saki-icon>
+									<span>
+										{t(
+											'sort' +
+												backups.sort.replace(
+													/\b(\w)(\w*)/g,
+													function ($0, $1, $2) {
+														return $1.toUpperCase() + $2
+													}
+												),
+											{
+												ns: 'indexPage',
+											}
+										)}
+									</span>
+								</div>
+								<div slot='main'>
+									<saki-menu
+										ref={bindEvent({
+											selectvalue: async (e) => {
+												dispatch(backupsSlice.actions.setSort(e.detail.value))
+												
+												setBackupSortDropdown(false)
+											},
+										})}
+									>
+										{sortList.map((v) => {
+											return (
+												<saki-menu-item key={v} padding='10px 18px' value={v}>
+													<div className='qv-h-r-u-item'>
+														<span>
+															{t(
+																'sort' +
+																	v.replace(
+																		/\b(\w)(\w*)/g,
+																		function ($0, $1, $2) {
+																			return $1.toUpperCase() + $2
+																		}
+																	),
+																{
+																	ns: 'indexPage',
+																}
+															)}
+														</span>
+													</div>
+												</saki-menu-item>
+											)
+										})}
+									</saki-menu>
+								</div>
+							</saki-dropdown>
+						</div>
 						{backups.list.length ? (
 							<div className='ip-l-list'>
 								{backups.list

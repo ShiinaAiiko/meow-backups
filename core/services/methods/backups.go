@@ -218,7 +218,7 @@ func ScheduledBackup(isFirst bool) {
 	// 每2分钟强制执行一次，以防休眠问题
 	ntimer.SetTimeout(func() {
 		ScheduledBackup(false)
-	}, 60*2*1000)
+	}, 15*1000)
 }
 
 func ScheduledBackupItem(bi *protos.BackupItem) {

@@ -10,7 +10,7 @@ import store, { ActionParams } from '.'
 import { WebStorage, StorageOptions } from '@nyanyajs/utils/dist/webStorage'
 import { platform } from './config'
 
-let storageStr: StorageOptions['storage'] = 'IndexedDB'
+let storageStr: StorageOptions['storage'] = 'LocalStorage'
 
 console.log(storageStr)
 if (platform === 'Electron') {

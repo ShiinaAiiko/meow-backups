@@ -5,7 +5,13 @@ import {
 	configureStore,
 } from '@reduxjs/toolkit'
 import md5 from 'blueimp-md5'
-import store, { ActionParams, RootState, appSlice, methods } from '.'
+import store, {
+	ActionParams,
+	RootState,
+	appSlice,
+	backupsSlice,
+	methods,
+} from '.'
 // import { WebStorage } from './ws'
 import { WebStorage, NRequest, SAaSS, NEventListener } from '@nyanyajs/utils'
 import { storage } from './storage'
@@ -32,6 +38,13 @@ export const configMethods = {
 				((await storage.systemConfig.get('appearanceMode')) || 'system') as any
 			)
 		)
+
+		store.dispatch(
+			backupsSlice.actions.setSort(
+				((await storage.systemConfig.get('backupSort')) || 'Name') as any
+			)
+		)
+		// setSort
 	}),
 	getDeviceType: createAsyncThunk(
 		modeName + '/getDeviceType',
@@ -145,7 +158,7 @@ let initialState = {
 		terminalCommand: false,
 	},
 	version: version,
-  newVersion: '',
+	newVersion: '',
 }
 
 export const configSlice = createSlice({
@@ -287,11 +300,11 @@ export const configSlice = createSlice({
 		},
 		setVersion: (state, params: ActionParams<string>) => {
 			state.version = params.payload
-    },
+		},
 		setNewVersion: (state, params: ActionParams<string>) => {
 			state.newVersion = params.payload
-    },
-    
+		},
+
 		setAppearanceMode: (state, params: ActionParams<AppearanceMode>) => {
 			state.appearanceMode = params.payload
 			document.body.classList.remove(

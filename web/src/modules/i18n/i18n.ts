@@ -117,6 +117,11 @@ const resources = {
 			backupTaskNameRequired: '备份任务名称为必填项',
 			localPathRequired: '本地路径为必填项',
 			backupPathRequired: '备份路径为必填项d',
+
+			sortName: '根据名称',
+			sortCreateTime: '最近创建',
+			sortLastBackupTime: '最近备份',
+			sortNextBackupTime: '下次备份',
 			// 1
 		},
 		settings: {
@@ -276,6 +281,11 @@ const resources = {
 			backupTaskNameRequired: '備份任務名稱為必填項',
 			localPathRequired: '需要本地路徑',
 			backupPathRequired: '需要備份路徑',
+
+			sortName: '根據名稱',
+			sortCreateTime: '最近創建',
+			sortLastBackupTime: '最近備份',
+			sortNextBackupTime: '下一次備份',
 			// 1
 		},
 		settings: {
@@ -365,7 +375,8 @@ const resources = {
 			newVersionAvailable: 'New version available',
 			newVersionContentTip:
 				'Version {version} has been found available, do you want to download the update?',
-        newVersionDownloadedTip: 'The new version has been downloaded and needs to be restarted. Restart now?',
+			newVersionDownloadedTip:
+				'The new version has been downloaded and needs to be restarted. Restart now?',
 			connecting: 'connecting',
 			appConnecting: '{appName} is connecting...',
 			restarting: 'Restarting',
@@ -442,6 +453,11 @@ const resources = {
 			backupTaskNameRequired: 'Backup task name is required',
 			localPathRequired: 'Local path is required',
 			backupPathRequired: 'Backup path is required',
+
+			sortName: 'By name',
+			sortCreateTime: 'Recently created',
+			sortLastBackupTime: 'Recent backup',
+			sortNextBackupTime: 'Next backup',
 			// 1
 		},
 		settings: {
