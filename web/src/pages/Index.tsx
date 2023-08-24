@@ -162,7 +162,7 @@ const IndexPage = () => {
 										ref={bindEvent({
 											selectvalue: async (e) => {
 												dispatch(backupsSlice.actions.setSort(e.detail.value))
-												
+
 												setBackupSortDropdown(false)
 											},
 										})}
@@ -238,17 +238,19 @@ const IndexPage = () => {
 														<div className={'item-h-status'}>
 															<span
 																className={
-																	'status-text ' +
+																	'status-text text-elipsis ' +
 																	i18n.language +
 																	(!v.deleteOldDataWhenSizeExceeds &&
 																	Number(v.backupFolderStatus?.size) >=
 																		Number(v.maximumStorageSize) * 1024 * 1024
 																		? ' pause'
 																		: v.status === 1
-																		? ' normal'
+																		? ' small'
 																		: v.status === 0
 																		? ' backingup'
-																		: ' pause')
+																		: ' pause') +
+																	' ' +
+																	(v.error ? 'errorsmall' : '')
 																}
 																style={{
 																	...(i18n.language === 'en-US' &&
@@ -261,6 +263,7 @@ const IndexPage = () => {
 																		: {}),
 																	whiteSpace: 'nowrap',
 																}}
+																title={v.error || ''}
 															>
 																{!v.deleteOldDataWhenSizeExceeds &&
 																Number(v.backupFolderStatus?.size) >=
@@ -275,6 +278,8 @@ const IndexPage = () => {
 																				(v.backupProgress || 0) * 10000
 																			) / 100
 																	  }%)`
+																	: v.error
+																	? v.error
 																	: t('paused', {
 																			ns: 'indexPage',
 																	  })}

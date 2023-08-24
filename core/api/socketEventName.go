@@ -18,6 +18,8 @@ var EventName = map[string](map[string](map[string]string)){
 
 			"backupTaskUpdate": "BackupTaskUpdate",
 			"checkForUpdates":  "CheckForUpdates",
+
+			"getLog": "GetLog",
 		},
 		"requestEventName": {
 			// backup

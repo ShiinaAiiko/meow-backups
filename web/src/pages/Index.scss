@@ -32,7 +32,7 @@
 				align-items: center;
 				cursor: pointer;
 				padding: 2px 4px;
-        user-select: none;
+				user-select: none;
 				&:hover {
 					span {
 						color: var(--saki-default-color);
@@ -107,7 +107,10 @@
 							align-items: flex-end;
 							.status-text {
 								color: rgb(22, 176, 22);
-								&.en-US.normal {
+                max-width: 200px;
+                display: block;
+								&.en-US.small,
+								&.errorsmall {
 									font-size: 14px;
 								}
 								&.backingup {

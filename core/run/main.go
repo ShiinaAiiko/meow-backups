@@ -4,11 +4,15 @@ package main
 import (
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
+
+	"strings"
 
 	conf "github.com/ShiinaAiiko/meow-backups/config"
 	flagconfig "github.com/ShiinaAiiko/meow-backups/run/flag"
 	"github.com/ShiinaAiiko/meow-backups/services/methods"
+	"github.com/cherrai/nyanyago-utils/ncommon"
 	"github.com/cherrai/nyanyago-utils/nint"
 	"github.com/cherrai/nyanyago-utils/nlog"
 	"github.com/shirou/gopsutil/process"
@@ -21,13 +25,23 @@ var (
 func init() {
 	nlog.SetPrefixTemplate("[{{Timer}}] [{{Type}}] [{{Date}}] [{{File}}]@{{Name}}")
 	nlog.SetName("meow-backups")
-	nlog.SetOutputFile("./logs/output.log", 1024*1024*10)
+
+	path, _ := os.Executable()
+	pathDir := filepath.Dir(path)
+	rootPath := filepath.Join(pathDir, ncommon.IfElse(strings.LastIndex(pathDir, "bin") == len(pathDir)-3, "..", "."))
+
+	conf.RootPath = rootPath
+	conf.CorePath = filepath.Join(rootPath, "./meow-backups")
+	conf.IconPath = filepath.Join(rootPath, "./static/icons/256x256.png")
+
+	nlog.SetOutputFile(filepath.Join(rootPath, "./logs/output.log"), 1024*1024*10)
+
 }
 
 func main() {
 	defer func() {
 		if err := recover(); err != nil {
-			log.Error(err)
+			log.FullCallChain(err.(error).Error(), "Error")
 		}
 	}()
 	parent := os.Getenv("APP_PPID")
@@ -60,8 +74,9 @@ func main() {
 func WatchExit() {
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan,
-		syscall.SIGHUP,
+		// syscall.SIGHUP,
 		syscall.SIGINT,
+		syscall.SIGKILL,
 		syscall.SIGTERM,
 		syscall.SIGQUIT)
 

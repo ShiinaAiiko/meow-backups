@@ -369,6 +369,27 @@ func (fc *AppController) UpdateSystemConfig(c *gin.Context) {
 
 			systemConfig["automaticStart"] = methods.IsAutoStart()
 		case "linux":
+			log.Info("设置自启功能")
+			if data.AutomaticStart == "true" {
+				err := methods.OpenAutoStart()
+				if err != nil {
+					log.Error(err)
+					res.Errors(err)
+					res.Code = 10002
+					res.Call(c)
+					return
+				}
+			} else {
+				err := methods.CloseAutoStart()
+				if err != nil {
+					log.Error(err)
+					res.Errors(err)
+					res.Code = 10002
+					res.Call(c)
+					return
+				}
+			}
+			systemConfig["automaticStart"] = methods.IsAutoStart()
 			// if systemConfig.AutomaticStart {
 			// 	// p, err := os.Executable()
 			// 	// if err != nil {

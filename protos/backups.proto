@@ -9,6 +9,7 @@ message BackupItem {
   string path = 2;
   bool isPathExists = 17;
   string backupPath = 11;
+  bool isBackupPathExists = 22;
   // Folder/File
   string type = 16;
   // 是否开启过滤模式，开启后在目标文件夹创建此过滤文件.mbignore
@@ -34,6 +35,8 @@ message BackupItem {
   float backupProgress = 20;
 
   bool deleteOldDataWhenSizeExceeds = 21;
+
+  string error = 23;
 }
 
 message FolderStatus {

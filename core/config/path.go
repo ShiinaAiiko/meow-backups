@@ -3,10 +3,13 @@ package conf
 import (
 	"io/ioutil"
 	"os"
-	"os/exec"
+
+	// "os/exec"
 	"os/user"
 	"path/filepath"
 	"runtime"
+
+	// "strings"
 
 	"github.com/cherrai/nyanyago-utils/ncommon"
 	"github.com/cherrai/nyanyago-utils/nfile"
@@ -17,6 +20,9 @@ var (
 	ConfigFolderPath = ""
 	DatabasePath     = ""
 	StaticPath       = ""
+	RootPath         = ""
+	CorePath         = ""
+	IconPath         = ""
 )
 
 func initPath() bool {
@@ -36,6 +42,7 @@ func initPath() bool {
 
 			// log.Info(p, path.Dir(p))
 			userConfigFilePath := filepath.Join(filepath.Dir(p), "user")
+			log.Info("userConfigFilePath", userConfigFilePath)
 			if nfile.IsExists(userConfigFilePath) {
 				fileBuffer, err := ioutil.ReadFile(userConfigFilePath)
 				if err != nil {
@@ -51,43 +58,54 @@ func initPath() bool {
 					} else {
 						if cu.Username != u.Username {
 							HomePath = cu.HomeDir
-							// HomeDir = cu.HomeDir
-							// log.Info("用户名不一样")
+							// // HomeDir = cu.HomeDir
+							// // log.Info("用户名不一样")
 
-							createUserConfigFile(userConfigFilePath, cu.Username)
-							args := append([]string{
-								"-u", string(fileBuffer), p,
-							}, os.Args[1:]...)
-							// log.Warn("args", args)
-							cmd := exec.Command("sudo", args...)
-							cmd.Stdout = os.Stdout
-							cmd.Stderr = os.Stderr
+							// CreateUserConfigFile(userConfigFilePath, cu.Username)
 
-							// uid, _ := strconv.Atoi(cu.Uid)
-							// gid, _ := strconv.Atoi(cu.Gid)
+							// pathDir := filepath.Dir(p)
+							// rootPath := filepath.Join(pathDir, ncommon.IfElse(strings.LastIndex(pathDir, "bin") == len(pathDir)-3, "..", "."))
 
-							// log.Info(uid, gid)
-							// cdl := &syscall.Credential{
-							// 	Uid: uint32(uid),
-							// 	Gid: uint32(gid),
+							// log.Info(rootPath)
+
+							// args := append([]string{
+							// 	"-u", string(fileBuffer), filepath.Join(rootPath, "./meow-backups"),
+							// 	// "-u", string(fileBuffer), p,
+							// }, os.Args[1:]...)
+							// log.Warn("args -> ", "sudo", args)
+
+							// cmd := exec.Command("sudo", args...)
+							// cmd.Stdout = os.Stdout
+							// cmd.Stderr = os.Stderr
+
+							// // uid, _ := strconv.Atoi(cu.Uid)
+							// // gid, _ := strconv.Atoi(cu.Gid)
+
+							// // log.Info(uid, gid)
+							// // cdl := &syscall.Credential{
+							// // 	Uid: uint32(uid),
+							// // 	Gid: uint32(gid),
+							// // }
+							// // cmd.SysProcAttr = &syscall.SysProcAttr{
+							// // 	Credential: cdl,
+							// // }
+
+							// if err = cmd.Start(); err != nil {
+							// 	log.Error(err)
+							// 	return false
 							// }
-							// cmd.SysProcAttr = &syscall.SysProcAttr{
-							// 	Credential: cdl,
+							// if err = cmd.Wait(); err != nil {
+							// 	log.Error(err)
+							// 	return false
 							// }
-
-							err = cmd.Run()
-							if err != nil {
-								log.Error(err)
-								return false
-							}
-							return false
+							// return true
 						}
 					}
 				} else {
-					createUserConfigFile(userConfigFilePath, u.Username)
+					CreateUserConfigFile(userConfigFilePath, u.Username)
 				}
 			} else {
-				createUserConfigFile(userConfigFilePath, u.Username)
+				CreateUserConfigFile(userConfigFilePath, u.Username)
 			}
 		}
 	}
@@ -103,7 +121,7 @@ func initPath() bool {
 	return true
 }
 
-func createUserConfigFile(userConfigFilePath, username string) {
+func CreateUserConfigFile(userConfigFilePath, username string) {
 	f, err := os.Create(userConfigFilePath)
 	if err != nil {
 		log.Error(err)

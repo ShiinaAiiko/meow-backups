@@ -44,9 +44,28 @@ func FormatBackupItem(bi *protos.BackupItem) (*protos.BackupItem, error) {
 
 	bi.Type = typeStr
 	bi.IsPathExists = isPathExists
+	bi.IsBackupPathExists = true
 
 	// log.Info("bi.Ignore", bi.Ignore, bi.Type)
-	if bi.Ignore {
+
+	if bi.CreateTime == 0 {
+		bi.CreateTime = time.Now().Unix()
+	}
+	bi.LastUpdateTime = time.Now().Unix()
+	// log.Info(bi.LastUpdateTime)
+
+	bps, err := os.Stat(bi.BackupPath)
+	if os.IsNotExist(err) || bps == nil {
+		err = os.MkdirAll(bi.BackupPath, os.ModePerm)
+		if err != nil {
+			log.Error(bi.BackupPath, " => ", err)
+			bi.Error = err.Error()
+			bi.Status = -1
+			bi.IsBackupPathExists = false
+			// return nil, err
+		}
+	}
+	if bi.Ignore && bi.IsBackupPathExists {
 		if bi.Type == "File" {
 			return nil, errors.New("only folders can use filter mode")
 		}
@@ -71,28 +90,18 @@ func FormatBackupItem(bi *protos.BackupItem) (*protos.BackupItem, error) {
 		if bi.IgnoreText != "" {
 			mbIgnoreFile, err := os.Create(mbIgnoreFilePath)
 			if err != nil {
-				return nil, err
+				log.Error(mbIgnoreFilePath, " => ", err)
+				// return nil, err
+				bi.Error = err.Error()
+				bi.Status = -1
+			} else {
+				mbIgnoreFile.Write([]byte(bi.IgnoreText))
+				err = os.Chmod(mbIgnoreFilePath, 0600)
+				if err != nil {
+					return nil, err
+				}
 			}
 			defer mbIgnoreFile.Close()
-			mbIgnoreFile.Write([]byte(bi.IgnoreText))
-			err = os.Chmod(mbIgnoreFilePath, 0600)
-			if err != nil {
-				return nil, err
-			}
-		}
-	}
-
-	if bi.CreateTime == 0 {
-		bi.CreateTime = time.Now().Unix()
-	}
-	bi.LastUpdateTime = time.Now().Unix()
-	// log.Info(bi.LastUpdateTime)
-
-	bps, err := os.Stat(bi.BackupPath)
-	if os.IsNotExist(err) || bps == nil {
-		err = os.MkdirAll(bi.BackupPath, os.ModePerm)
-		if err != nil {
-			return nil, err
 		}
 	}
 	go UpdateBackupStats(bi)
@@ -293,7 +302,9 @@ func PauseBackup(bi *protos.BackupItem) error {
 		conf.BackupsFS.Set(bi.Id, bi, 0)
 		ScheduledBackupItem(bi)
 		EmitMessage(bi)
-		conf.TraybarEvent.Dispatch("SetTitle", "")
+		if conf.TraybarEvent != nil {
+			conf.TraybarEvent.Dispatch("SetTitle", "")
+		}
 
 		log.Info("已暂停备份")
 		if backupPath != "" {
@@ -310,6 +321,7 @@ func BackupNow(bi *protos.BackupItem) {
 		log.Info("暂停着呢")
 		return
 	}
+	bi.Error = ""
 	// if bi.Status == 0 {
 	// 	log.Info("正在备份呢")
 	// 	return
@@ -321,6 +333,12 @@ func BackupNow(bi *protos.BackupItem) {
 		err = os.MkdirAll(bi.BackupPath, os.ModePerm)
 		if err != nil {
 			log.Error(err)
+			bi.Status = -1
+			bi.BackupProgress = 0
+			conf.BackupsFS.Set(bi.Id, bi, 0)
+			bi.Error = err.Error()
+			EmitMessage(bi)
+			return
 		}
 	}
 
@@ -337,6 +355,11 @@ func BackupNow(bi *protos.BackupItem) {
 	err = MatchPath(bi.Path, ignoreTextItemArr, &ignoreMatches)
 	if err != nil {
 		log.Error(err)
+		bi.Status = -1
+		bi.BackupProgress = 0
+		conf.BackupsFS.Set(bi.Id, bi, 0)
+		bi.Error = err.Error()
+		EmitMessage(bi)
 		return
 	}
 
@@ -345,6 +368,7 @@ func BackupNow(bi *protos.BackupItem) {
 		bi.Status = -1
 		bi.BackupProgress = 0
 		conf.BackupsFS.Set(bi.Id, bi, 0)
+		bi.Error = err.Error()
 		EmitMessage(bi)
 		return
 	}
@@ -397,8 +421,8 @@ func BackupNow(bi *protos.BackupItem) {
 		}
 		bp := float32(cSize) / float32(pfs.Size)
 		// log.Info(cSize, pfs.Size, bp)
-		log.Info("-> 已备份", fmt.Sprintf("%.2f%%", bp))
-		conf.TraybarEvent.Dispatch("SetTitle", fmt.Sprintf("%.2f%%", bp))
+		log.Info("-> 已备份", fmt.Sprintf("%.2f%%", bp*100))
+		conf.TraybarEvent.Dispatch("SetTitle", fmt.Sprintf("%.2f%%", bp*100))
 		if bp >= 1 {
 			bi.LastBackupTime = time.Now().Unix()
 			bi.Status = 0

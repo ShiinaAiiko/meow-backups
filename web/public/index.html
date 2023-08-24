@@ -43,3 +43,11 @@
 	</body>
 	<script src="%PUBLIC_URL%/static/js/utils.js"></script>
 </html>
+
+
+<script>
+	let appearanceMode = localStorage.getItem('appearanceMode') || 'system'
+	document.body.classList.remove('system-mode', 'dark-mode', 'light-mode')
+
+	document.body.classList.add(appearanceMode + '-mode')
+</script>

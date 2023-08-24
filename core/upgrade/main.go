@@ -2,9 +2,12 @@ package main
 
 import (
 	"flag"
-
 	flagconfig "github.com/ShiinaAiiko/meow-backups/upgrade/flag"
+	"github.com/cherrai/nyanyago-utils/ncommon"
 	"github.com/cherrai/nyanyago-utils/nlog"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
 var (
@@ -18,7 +21,12 @@ var (
 func init() {
 	nlog.SetPrefixTemplate("[{{Timer}}] [{{Type}}] [{{Date}}] [{{File}}]@{{Name}}")
 	nlog.SetName("meow-backups-upgrade")
-	nlog.SetOutputFile("./logs/output.log", 1024*1024*10)
+	path, _ := os.Executable()
+	pathDir := filepath.Dir(path)
+	rootPath := filepath.Join(pathDir, ncommon.IfElse(strings.LastIndex(pathDir, "bin") == len(pathDir)-3, "..", "."))
+
+	nlog.SetOutputFile(filepath.Join(rootPath, "./logs/output.log"), 1024*1024*10)
+
 }
 
 // cmd.exe /C start .\meow-backups

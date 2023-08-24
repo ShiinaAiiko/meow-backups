@@ -3,6 +3,7 @@ package conf
 import (
 	"encoding/json"
 	"os"
+	"os/user"
 	"path/filepath"
 
 	"github.com/ShiinaAiiko/meow-backups/typings"
@@ -18,6 +19,9 @@ var (
 )
 
 func CreateConfig() {
+	u, _ := user.Current()
+	HomePath = u.HomeDir
+	log.Info("HomeDir", HomePath)
 	// 1、获取之前的配置文件
 	path, _ := os.Executable()
 	dirPath := filepath.Dir(path)

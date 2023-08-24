@@ -4,6 +4,14 @@ option go_package = "./;protos";
 package app;
 import "backups.proto";
 
+message GetLog {
+  message Request {
+    // 1 receive 0 reject
+    string status = 1;
+  }
+  message Response { string log = 1; }
+}
+
 message CheckForUpdates {
   message Request {
     // CheckForUpdates

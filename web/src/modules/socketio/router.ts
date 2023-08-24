@@ -145,6 +145,16 @@ export const createSocketioRouter = {
 					protoRoot.app.CheckForUpdates.Response
 				),
 			})
+			.router({
+				eventName: NSocketIoEventNames.v1.getLog,
+				func: socketio.ResponseDecode<protoRoot.app.GetLog.IResponse>(
+					(res) => {
+						console.log('GetLog',res, res.data.log)
+					
+					},
+					protoRoot.app.GetLog.Response
+				),
+			})
 	},
 }
 export default createSocketioRouter

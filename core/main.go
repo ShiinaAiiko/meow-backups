@@ -3,9 +3,11 @@ package main
 import (
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 
 	"github.com/cherrai/nyanyago-utils/nint"
+	"github.com/cherrai/nyanyago-utils/nlog"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/shirou/gopsutil/process"
 
@@ -14,7 +16,11 @@ import (
 	"github.com/ShiinaAiiko/meow-backups/services/methods"
 	"github.com/ShiinaAiiko/meow-backups/services/server"
 	"github.com/ShiinaAiiko/meow-backups/traybar"
-	"github.com/cherrai/nyanyago-utils/nlog"
+
+	// "github.com/ShiinaAiiko/meow-backups/traybar"
+	"strings"
+
+	"github.com/cherrai/nyanyago-utils/ncommon"
 )
 
 var (
@@ -22,12 +28,25 @@ var (
 )
 
 func init() {
+	log.Info("Init开始运行 Meow Backups Core!")
 	nlog.SetPrefixTemplate("[{{Timer}}] [{{Type}}] [{{Date}}] [{{File}}]@{{Name}}")
 	nlog.SetName("mbc")
-	nlog.SetOutputFile("./logs/output.log", 1024*1024*10)
+	path, _ := os.Executable()
+	pathDir := filepath.Dir(path)
+	rootPath := filepath.Join(filepath.Join(pathDir, ncommon.IfElse(strings.LastIndex(pathDir, "tmp") == len(pathDir)-3, "..", ".")), ncommon.IfElse(strings.LastIndex(pathDir, "bin") == len(pathDir)-3, "..", "."))
+
+	conf.RootPath = rootPath
+	conf.CorePath = filepath.Join(rootPath, "./meow-backups")
+	conf.IconPath = filepath.Join(rootPath, "./static/icons/256x256.png")
+
+	log.Info(filepath.Join(rootPath, "./logs/output.log"))
+	nlog.SetOutputFile(filepath.Join(rootPath, "./logs/output.log"), 1024*1024*10)
+
+	methods.InitLog()
 }
 
 func main() {
+	log.Info("开始运行 Meow Backups Core!")
 	defer func() {
 		if err := recover(); err != nil {
 			log.FullCallChain(err.(error).Error(), "Error")
@@ -35,7 +54,9 @@ func main() {
 	}()
 
 	parent := os.Getenv("APP_PPID")
+
 	if parent != "" {
+		log.Info("parent", parent)
 		p, err := process.NewProcess(nint.ToInt32(parent))
 		if err != nil {
 			log.Error(err)
@@ -46,7 +67,6 @@ func main() {
 			}
 		}
 	}
-	log.Info("开始运行 Meow Backups Core!")
 	log.Info(os.Args, os.Getpid(), os.Getppid(), os.Getenv("APP_PPID"))
 
 	WatchExit()
@@ -109,9 +129,10 @@ func main() {
 func WatchExit() {
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan,
-		syscall.SIGHUP,
+		// syscall.SIGHUP,
 		syscall.SIGINT,
 		syscall.SIGTERM,
+		syscall.SIGKILL,
 		syscall.SIGQUIT)
 
 	go func() {

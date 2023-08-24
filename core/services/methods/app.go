@@ -9,7 +9,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"runtime"
-	"strings"
+	"strconv"
 	"sync"
 	"syscall"
 
@@ -18,6 +18,7 @@ import (
 	"github.com/cherrai/nyanyago-utils/narrays"
 	"github.com/cherrai/nyanyago-utils/nfile"
 	"github.com/cherrai/nyanyago-utils/nint"
+	"github.com/cherrai/nyanyago-utils/nlinux"
 	"github.com/cherrai/nyanyago-utils/nstrings"
 	"github.com/cherrai/nyanyago-utils/ntimer"
 	"github.com/go-ole/go-ole"
@@ -79,13 +80,30 @@ func NoConsoleRunApp() {
 			log.Error(err)
 		}
 	case "linux":
-
-		if err = exec.Command(cmdPath, narrays.Filter(args, func(v string) bool {
+		tempArgs := narrays.Filter(args, func(v string) bool {
 			return v != "-no-console"
-		})...).Start(); err != nil {
+		})
+		tempArgs = append([]string{cmdPath}, tempArgs...)
+		tempArgs = append(tempArgs, "/dev/null", "2>&1", "&")
+		// nohup ./bin/meow-backups-core $command >/dev/null 2>&1 &
+		if err = exec.Command("nohup", tempArgs...).Start(); err != nil {
 			log.Error(err)
 		}
 
+		// if err = exec.Command(cmdPath, narrays.Filter(args, func(v string) bool {
+		// 	return v != "-no-console"
+		// })...).Start(); err != nil {
+		// 	log.Error(err)
+		// }
+
+		// var wg sync.WaitGroup
+
+		// wg.Add(1)
+		// ntimer.SetTimeout(func() {
+		// 	wg.Done()
+		// }, 3000)
+
+		// wg.Wait()
 	}
 
 }
@@ -97,7 +115,7 @@ func StartService() {
 	}
 }
 
-func OpenAutoStart() {
+func OpenAutoStart() error {
 	InitSVC()
 	switch sysType {
 	case "windows":
@@ -109,6 +127,7 @@ func OpenAutoStart() {
 		p, err := os.Executable()
 		if err != nil {
 			log.Error(err)
+			return err
 		}
 		// if err := svc.Install(); err != nil {
 		// 	log.Error(err)
@@ -130,20 +149,21 @@ func OpenAutoStart() {
 		oleShellObject, err := oleutil.CreateObject("WScript.Shell")
 		if err != nil {
 			log.Error(err)
-			return
+			return err
 		}
 		defer oleShellObject.Release()
 		wshell, err := oleShellObject.QueryInterface(ole.IID_IDispatch)
 		if err != nil {
 			log.Error(err)
-			return
+			return err
 		}
 		defer wshell.Release()
 		cs, err := oleutil.CallMethod(wshell, "CreateShortcut", lnkPath)
 		if err != nil {
 			log.Error(err)
-			return
+			return err
 		}
+
 		idispatch := cs.ToIDispatch()
 		oleutil.PutProperty(idispatch, "TargetPath", exePath)
 		oleutil.PutProperty(idispatch, "TargetPath", exePath)
@@ -158,7 +178,7 @@ func OpenAutoStart() {
 		log.Info("自启动快捷方式路径 => ", newLnkPath)
 		if err := nfile.Move(lnkPath, newLnkPath); err != nil {
 			log.Error(err)
-			return
+			return err
 		}
 		// StopApp()
 	case "linux":
@@ -169,21 +189,38 @@ func OpenAutoStart() {
 		// 		log.Error(err)
 		// 	}
 		// }
-		log.Info("正在安装服务")
-		if err := svc.Install(); err != nil {
-			log.Error(err)
-		}
 
-		log.Info("正在设置自启")
-		cmd := exec.Command("systemctl", "enable", conf.SVCConfig.Name+".service")
-		err := cmd.Run()
+		// log.Info("正在安装服务")
+		// if err := svc.Install(); err != nil {
+		// 	log.Error(err)
+		// }
+
+		// log.Info("正在设置自启")
+		// cmd := exec.Command("systemctl", "enable", conf.SVCConfig.Name+".service")
+		// err := cmd.Run()
+		// if err != nil {
+		// 	log.Error(err)
+		// }
+
+		err := nlinux.CreateDesktopFile(&nlinux.DesktopFileOptions{
+			Type:        "Application",
+			Name:        conf.SVCConfig.Name,
+			DisplayName: conf.SVCConfig.DisplayName,
+			Comment:     conf.SVCConfig.Description,
+			Version:     conf.Version,
+			Exec:        conf.CorePath,
+			Terminal:    true,
+			Icon:        conf.IconPath,
+		})
 		if err != nil {
 			log.Error(err)
+			return err
 		}
 	}
+	return nil
 }
 
-func CloseAutoStart() {
+func CloseAutoStart() error {
 	InitSVC()
 	switch sysType {
 	case "windows":
@@ -192,6 +229,7 @@ func CloseAutoStart() {
 		lnkPath := filepath.Join(u.HomeDir, "./AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Startup", "./"+conf.SVCConfig.Name+".lnk")
 		if err := nfile.Remove(lnkPath); err != nil {
 			log.Error(err)
+			return err
 		}
 		// // // 需要检测是否设置了自启
 		// mwinsvc.RemoveService(conf.AppInfoConfig.ServiceName)
@@ -200,18 +238,26 @@ func CloseAutoStart() {
 		// if sStatus != 1 {
 		// 	// log.Error(svc.Install())
 		// } else {
-		log.Info("正在关闭自启")
-		cmd := exec.Command("systemctl", "disable", conf.SVCConfig.Name+".service")
-		err := cmd.Run()
+
+		// log.Info("正在关闭自启")
+		// cmd := exec.Command("systemctl", "disable", conf.SVCConfig.Name+".service")
+		// err := cmd.Run()
+		// if err != nil {
+		// 	log.Error(err)
+		// }
+		// log.Info("正在卸载服务")
+		// if err := svc.Uninstall(); err != nil {
+		// 	log.Error(err)
+		// }
+
+		err := nlinux.RemoveDesktopFile(conf.SVCConfig.Name)
 		if err != nil {
 			log.Error(err)
-		}
-		log.Info("正在卸载服务")
-		if err := svc.Uninstall(); err != nil {
-			log.Error(err)
+			return err
 		}
 		// }
 	}
+	return nil
 }
 
 func StopApp() {
@@ -290,20 +336,61 @@ func OpenApp(logFunc func(stdout io.ReadCloser, l string)) {
 	pid := os.Getpid()
 	log.Info("args => ", args)
 	// os.Setenv("APP_PPID", nstrings.ToString(pid))
-	log.Info("ppid", pid)
+	log.Info("ppid", pid, p)
 
 	// 暂时性用这个
 
 	switch sysType {
 	case "linux":
-		mainProcess, err := os.StartProcess(cmdPath, append([]string{cmdPath}, args...), &os.ProcAttr{
-			Dir: filepath.Dir(p),
-			Files: []*os.File{
-				os.Stdin, os.Stdout, os.Stderr,
-			},
-			Env: os.Environ(),
-			Sys: &syscall.SysProcAttr{},
-		})
+		user, _ := user.Lookup("shiina_aiiko")
+		uid, _ := strconv.Atoi(user.Uid)
+		gid, _ := strconv.Atoi(user.Gid)
+		log.Info(uid, gid)
+
+		// log.Info("sudo", append([]string{"-u", "shiina_aiiko", cmdPath}, args...))
+
+		// args := append([]string{
+		// 	// cmdPath,
+		// 	// "-u", "shiina_aiiko", cmdPath,
+		// 	// "-u", string(fileBuffer), filepath.Join(rootPath, "./meow-backups"),
+		// }, args...)
+		// log.Warn("args -> ", "sudo", args)
+
+		// cmd := exec.Command(cmdPath, args...)
+
+		// cmd.Stdout = os.Stdout
+		// cmd.Stderr = os.Stderr
+		// // cmd.SysProcAttr = &syscall.SysProcAttr{}
+		// // cmd.SysProcAttr.Credential = &syscall.Credential{Uid: uint32(uid), Gid: uint32(gid)}
+
+		// mainProcess = cmd.Process
+		// if err := cmd.Start(); err != nil {
+		// 	log.Error(err)
+		// 	return
+		// }
+		// if err := cmd.Wait(); err != nil {
+		// 	log.Error(err)
+		// 	return
+		// }
+		mainProcess, err := os.StartProcess(
+			cmdPath, append([]string{cmdPath}, args...), &os.ProcAttr{
+				// "sudo", append([]string{"-u", "shiina_aiiko", cmdPath}, args...),&os.ProcAttr{
+				Dir: filepath.Dir(p),
+				Files: []*os.File{
+					os.Stdin, os.Stdout, os.Stderr,
+				},
+				Env: os.Environ(),
+				Sys: &syscall.SysProcAttr{},
+			})
+		// mainProcess, err := os.StartProcess(
+		// 	cmdPath, append([]string{cmdPath}, args...), &os.ProcAttr{
+		// 		Dir: filepath.Dir(p),
+		// 		Files: []*os.File{
+		// 			os.Stdin, os.Stdout, os.Stderr,
+		// 		},
+		// 		Env: os.Environ(),
+		// 		Sys: &syscall.SysProcAttr{},
+		// 	})
 		if err != nil {
 			log.Error(err)
 			return
@@ -381,6 +468,9 @@ func OpenApp(logFunc func(stdout io.ReadCloser, l string)) {
 	// }
 
 	// 暂时放弃
+	// log.Info(1)
+	// ch := make(chan int)
+	// <-ch
 	log.Info(conf.SVCConfig.Name + " 结束运行")
 }
 
@@ -391,16 +481,18 @@ func IsAutoStart() bool {
 		lnkPath := filepath.Join(u.HomeDir, "./AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Startup", "./"+conf.SVCConfig.Name+".lnk")
 		return nfile.IsExists(lnkPath)
 	case "linux":
-		cmd := exec.Command("systemctl", "is-enabled", conf.SVCConfig.Name+".service")
-		out, err := cmd.CombinedOutput()
-		if err != nil {
-			log.Error(err)
-			// log.Error("cmd.Run() failed with %s\n", err)
-		}
-		// log.Info("out", string(out), string(out) == "enabled")
+		return nlinux.IsExistsDesktopFile(conf.SVCConfig.Name)
 
-		return strings.Contains(string(out), "enabled")
-		// systemConfig.AutomaticStart = string(out) == "enabled"
+		// cmd := exec.Command("systemctl", "is-enabled", conf.SVCConfig.Name+".service")
+		// out, err := cmd.CombinedOutput()
+		// if err != nil {
+		// 	log.Error(err)
+		// 	// log.Error("cmd.Run() failed with %s\n", err)
+		// }
+		// // log.Info("out", string(out), string(out) == "enabled")
+
+		// return strings.Contains(string(out), "enabled")
+		// // systemConfig.AutomaticStart = string(out) == "enabled"
 	default:
 	}
 	return false
@@ -418,13 +510,14 @@ func InitLock() {
 			// log.Error(err)
 			// return v.Value, err
 		} else {
-			log.Info(string(fileBuffer))
-			if len(fileBuffer) != 0 {
+			// log.Info(string(fileBuffer))
+			// log.Info(nint.ToInt(string(fileBuffer)), os.Getpid())
+			if len(fileBuffer) != 0 && nint.ToInt(string(fileBuffer)) != os.Getpid() {
 				p, err := process.NewProcess(nint.ToInt32(string(fileBuffer)))
 				if err != nil {
 					// log.Error(err)
 				} else {
-					log.Warn("Killed the process with pid " + nstrings.ToString(mainProcess.Pid))
+					log.Warn("Killed the process with pid " + nstrings.ToString(p.Pid))
 					if err := p.Kill(); err != nil {
 						log.Error(err)
 					}

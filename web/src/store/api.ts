@@ -51,7 +51,9 @@ export const apiSlice = createSlice({
 				OnForceOffline: 'OnForceOffline',
 
 				backupTaskUpdate: 'BackupTaskUpdate',
-				checkForUpdates: 'CheckForUpdates',
+        checkForUpdates: 'CheckForUpdates',
+        
+				getLog: 'GetLog',
 
 				addBackup: 'AddBackup',
 				getBackups: 'GetBackups',

@@ -11,7 +11,7 @@ noConsoleLinux() {
 run() {
   echo "-> 开始执行服务"
 
-  ./meow-backups $command
+  ./meow-backups-core $command
   # ./bin/meow-backups-core $command
 }
 

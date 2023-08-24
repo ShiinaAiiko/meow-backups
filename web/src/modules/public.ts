@@ -18,8 +18,8 @@ R.interceptors.request.use(async (config) => {
 		config.data.token = deviceToken.token
 		config.data.deviceId = deviceToken.deviceId
 	}
-  config.data.userAgent = userAgent
-  // console.log(deepCopy(config))
+	config.data.userAgent = userAgent
+	// console.log(deepCopy(config))
 	// nyanyalog.info("axiosrequest",JSON.parse(JSON.stringify(config.data)))
 
 	// 发送请求也需要序列号
@@ -113,12 +113,12 @@ R.interceptors.response.use(async (response) => {
 
 		// console.log(ResponseType.encode)
 
-		let data: any = ResponseType.decode(
+		let data = ResponseType.decode(
 			// Buffer.from(response.data.protobuf, 'utf-8')
 			new Uint8Array(Buffer.from(response.data.protobuf, 'base64'))
 		)
-		data.code = data.code?.toNumber?.() || data.code
-		data.requestTime = data.requestTime?.toNumber?.() || data.requestTime
+		data.code = Number(data.code)
+		data.requestTime = Number(data.requestTime)
 		// console.log('data', data)
 		// 	// console.log('key', key)
 		// 	// console.log(config.config.responseEncryption)
@@ -140,6 +140,10 @@ R.interceptors.response.use(async (response) => {
 		})
 		// console.log('解密', response.data, data.key)
 		delete response.data.protobuf
+
+		if (data?.code !== 200) {
+			console.error(data)
+		}
 		// 	}
 		// }
 		// // console.log(response.data)

@@ -458,7 +458,7 @@ const General = ({ show }: { show: boolean }) => {
 								ns: 'settings',
 							})}
 						</span>
-						{app.systemConfig.Os === 'linux' ? (
+						{/* {app.systemConfig.Os === 'linux' ? (
 							<saki-button
 								ref={bindEvent({
 									tap: () => {
@@ -471,22 +471,22 @@ const General = ({ show }: { show: boolean }) => {
 									<span>{t('useTerminal')}</span>
 								</saki-title>
 							</saki-button>
-						) : (
-							<saki-switch
-								ref={bindEvent({
-									change: (e) => {
-										dispatch(configSlice.actions.setAutomaticStart(e.detail))
+						) : ( */}
+						<saki-switch
+							ref={bindEvent({
+								change: (e) => {
+									dispatch(configSlice.actions.setAutomaticStart(e.detail))
 
-										api.v1.app.updateSystemConfig({
-											automaticStart: e.detail,
-										})
-									},
-								})}
-								height='24px'
-								value={automaticStart}
-								disabled={app.systemConfig.Os === 'linux'}
-							></saki-switch>
-						)}
+									api.v1.app.updateSystemConfig({
+										automaticStart: e.detail,
+									})
+								},
+							})}
+							height='24px'
+							value={automaticStart}
+							disabled={app.systemConfig.Os === 'linux'}
+						></saki-switch>
+						{/* )} */}
 					</div>
 				)}
 			></SettingsItem>
