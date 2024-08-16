@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"net"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -8,6 +10,7 @@ import (
 
 	"github.com/cherrai/nyanyago-utils/nint"
 	"github.com/cherrai/nyanyago-utils/nlog"
+	"github.com/cherrai/nyanyago-utils/ntimer"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/shirou/gopsutil/process"
 
@@ -122,6 +125,8 @@ func main() {
 	// 	log.Info(filepath.Ext(path))
 	// 	log.Info("./" + filepath.Join(filepath.Dir(path), strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))+"_"+time.Now().Format("20060102150405")+filepath.Ext(path)))
 	// }, 1000)
+	ntimer.SetTimeout(func() {
+	}, 1000)
 	traybar.Install()
 	server.Init()
 }

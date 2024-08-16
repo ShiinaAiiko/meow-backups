@@ -13,6 +13,11 @@ let nsocketio = {
 	url: localhostUrl,
 }
 
+let sakisso = {
+	appId: '',
+	clientUrl: '',
+	serverUrl: '',
+}
 let sakiui = {
 	jsurl: '',
 	esmjsurl: '',
@@ -32,6 +37,7 @@ if (origin === 'file://') {
 
 interface Config {
 	version: typeof version
+	sakisso: typeof sakisso
 	serverApi: typeof serverApi
 	nsocketio: typeof nsocketio
 	sakiui: typeof sakiui
@@ -44,6 +50,7 @@ try {
 	console.log('configJson', configJson)
 	if (configJson) {
 		version = pkg.version
+		sakisso = configJson.sakisso
 		// sakisso = configJson.sakisso
 		serverApi = configJson.serverApi
 		nsocketio = configJson.nsocketio
@@ -60,4 +67,4 @@ try {
 	console.log('未添加配置文件.')
 	console.log(error)
 }
-export { version, serverApi, sakiui, nsocketio, origin, meowApps }
+export { version, sakisso, serverApi, sakiui, nsocketio, origin, meowApps }

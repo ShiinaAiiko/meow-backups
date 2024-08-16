@@ -9,6 +9,7 @@ import store, { ActionParams, RootState } from '.'
 import { PARAMS, protoRoot } from '../protos'
 import { WebStorage, SakiSSOClient } from '@nyanyajs/utils'
 
+import { sakisso } from '../config'
 import { userAgent } from './user'
 
 export const modeName = 'sso'
@@ -32,7 +33,7 @@ export const ssoSlice = createSlice({
 	initialState: state,
 	reducers: {
 		init: (state, params: ActionParams<{}>) => {},
-		setStatus: (state, params: ActionParams<typeof state['status']>) => {
+		setStatus: (state, params: ActionParams<(typeof state)['status']>) => {
 			state.status = params.payload
 		},
 	},
@@ -47,5 +48,12 @@ export const ssoMethods = {
 		}
 	>(modeName + '/Init', async (_, thunkAPI) => {
 		console.log('初始化sso')
+		client = new SakiSSOClient({
+			appId: sakisso.appId,
+			clientUrl: sakisso.clientUrl,
+			serverUrl: sakisso.serverUrl,
+			userAgent,
+		})
+		console.log('sakisso', client)
 	}),
 }

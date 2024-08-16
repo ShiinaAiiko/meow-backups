@@ -187,7 +187,7 @@ el:install() {
 }
 
 download:saki-ui() {
-  wget https://saki-ui.aiiko.club/packages/saki-ui-v1.0.0.tgz -O saki-ui.tgz
+  wget https://saki-ui.aiiko.club/packages/saki-ui-v1.0.1.tgz -O saki-ui.tgz
   tar zxvf ./saki-ui.tgz -C ./build
   rm -rf ./saki-ui*
 }
