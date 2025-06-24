@@ -41,6 +41,7 @@ message UpdateSystemConfig {
   message Request {
     // zh-CN/zh-TW/en-US/system
     string language = 1;
+    string lang = 4;
     // black/dark/light/system
     string appearance = 2;
     // true/false/""
@@ -54,6 +55,7 @@ message GetSystemConfig {
   message Response {
     // zh-CN/zh-TW/en-US/system
     string language = 1;
+    string lang = 9;
     // dark/light/system
     string appearance = 2;
     bool automaticStart = 3;

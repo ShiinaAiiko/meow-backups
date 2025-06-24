@@ -14,14 +14,13 @@ require (
 
 require (
 	github.com/chai2010/winsvc v0.0.0-20200705094454-db7ec320025c
-	github.com/cherrai/nyanyago-utils v1.0.6
+	github.com/cherrai/nyanyago-utils v1.0.10
 	github.com/cherrai/saki-sso-go v1.0.1
 	github.com/getlantern/systray v1.2.2
 	github.com/go-ole/go-ole v1.3.0
 	github.com/google/uuid v1.3.0
 	github.com/gosuri/uiprogress v0.0.1
 	github.com/kardianos/service v1.2.2
-	github.com/mattn/go-sqlite3 v1.14.17
 	github.com/pasztorpisti/qs v0.0.0-20171216220353-8d6c33ee906c
 	github.com/pkg/errors v0.9.1
 	github.com/shirou/gopsutil v3.21.11+incompatible

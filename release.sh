@@ -8,9 +8,9 @@ data=$(cat ./$configBuildJson | sed -r 's/",/"/' | egrep -v '^[{}]' | sed 's/"//
 declare $data
 
 # configBuildJson="config.build.pro.json"
-# versionDownloadUrl="http://192.168.204.129:16100/api/v1/share?path=/meow-backups&sid=FqZY6hzQNb&pwd="
-# versionDownloadUrl="http://192.168.204.129:16100/api/v1/share?path=/meow-backups&sid=FqZY6hzQNb&pwd="
-# version="v1.0.2"
+# versionDownloadUrl="http://192.168.204.132:16100/api/v1/share?path=/meow-backups&sid=FqZY6hzQNb&pwd="
+# versionDownloadUrl="http://192.168.204.132:16100/api/v1/share?path=/meow-backups&sid=FqZY6hzQNb&pwd="
+# version="v1.0.1"
 DIR=$(cd $(dirname $0) && pwd)
 
 protos() {

@@ -142,7 +142,7 @@ R.interceptors.response.use(async (response) => {
 		delete response.data.protobuf
 
 		if (data?.code !== 200) {
-			console.error(data)
+			console.error(response)
 		}
 		// 	}
 		// }

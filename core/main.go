@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"net"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -11,7 +9,6 @@ import (
 	"github.com/cherrai/nyanyago-utils/nint"
 	"github.com/cherrai/nyanyago-utils/nlog"
 	"github.com/cherrai/nyanyago-utils/ntimer"
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/shirou/gopsutil/process"
 
 	conf "github.com/ShiinaAiiko/meow-backups/config"

@@ -63,7 +63,10 @@ func UpdateMenu() {
 	scVal, err := conf.ConfigFS.Get("systemConfig")
 	if scVal != nil && err == nil {
 		sc := scVal.Value().((map[string]interface{}))
-		language = sc["language"].(string)
+		if sc["lang"] != nil {
+			language = sc["lang"].(string)
+		}
+
 	}
 	systray.SetTitle("")
 	// systray.SetTitle(t("appTitle"))

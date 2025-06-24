@@ -170,7 +170,6 @@ func OpenAutoStart() error {
 		oleutil.CallMethod(idispatch, "Save")
 
 		log.Info("正在设置开机方式")
-
 		u, _ := user.Current()
 
 		newLnkPath := filepath.Join(u.HomeDir, "./AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Startup", "./"+conf.SVCConfig.Name+".lnk")

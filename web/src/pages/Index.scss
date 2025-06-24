@@ -107,8 +107,8 @@
 							align-items: flex-end;
 							.status-text {
 								color: rgb(22, 176, 22);
-                max-width: 200px;
-                display: block;
+								max-width: 200px;
+								display: block;
 								&.en-US.small,
 								&.errorsmall {
 									font-size: 14px;
@@ -240,4 +240,16 @@
 			}
 		}
 	}
+}
+
+.ip-r-b-content {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  saki-icon {
+    margin: 2px 0 0;
+  }
+  span {
+    margin-left: 4px;
+  }
 }

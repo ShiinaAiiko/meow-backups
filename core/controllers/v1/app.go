@@ -204,6 +204,7 @@ func (fc *AppController) GetSystemConfig(c *gin.Context) {
 
 	systemConfig["automaticStart"] = false
 	systemConfig["language"] = "system"
+	systemConfig["lang"] = "en-US"
 	systemConfig["appearance"] = "system"
 
 	scVal, err := conf.ConfigFS.Get("systemConfig")
@@ -215,6 +216,10 @@ func (fc *AppController) GetSystemConfig(c *gin.Context) {
 		// systemConfig.Language = sc["language"].(string)
 		// systemConfig.Appearance = sc["appearance"].(string)
 		systemConfig["language"] = sc["language"]
+		if sc["lang"] == nil {
+			sc["lang"] = "en-US"
+		}
+		systemConfig["lang"] = sc["lang"]
 		systemConfig["appearance"] = sc["appearance"]
 		// automaticStart = systemConfig["AutomaticStart"].(bool)
 
@@ -233,6 +238,7 @@ func (fc *AppController) GetSystemConfig(c *gin.Context) {
 		// Appearance:     systemConfig.Appearance,
 		// AutomaticStart: systemConfig.AutomaticStart,
 		Language:       systemConfig["language"].(string),
+		Lang:           systemConfig["lang"].(string),
 		Appearance:     systemConfig["appearance"].(string),
 		AutomaticStart: systemConfig["automaticStart"].(bool),
 		Os:             runtime.GOOS,
@@ -326,6 +332,9 @@ func (fc *AppController) UpdateSystemConfig(c *gin.Context) {
 		validation.Parameter(&data.Language, validation.Enum([]string{
 			"zh-CN", "zh-TW", "en-US", "system",
 		}), validation.Type("string"), validation.Required()),
+		validation.Parameter(&data.Lang, validation.Enum([]string{
+			"zh-CN", "zh-TW", "en-US",
+		}), validation.Type("string"), validation.Required()),
 		validation.Parameter(&data.Appearance, validation.Enum([]string{
 			"black", "dark", "light", "system",
 		}), validation.Type("string"), validation.Required()),
@@ -340,6 +349,7 @@ func (fc *AppController) UpdateSystemConfig(c *gin.Context) {
 	systemConfig := map[string]interface{}{}
 	// systemConfig["automaticStart"] = data.AutomaticStart
 	systemConfig["language"] = data.Language
+	systemConfig["lang"] = data.Lang
 	systemConfig["appearance"] = data.Appearance
 
 	sc, err := conf.ConfigFS.Get("systemConfig")

@@ -122,6 +122,10 @@ const resources = {
 			sortCreateTime: '最近创建',
 			sortLastBackupTime: '最近备份',
 			sortNextBackupTime: '下次备份',
+
+			backupAll: '全部备份',
+			pauseAll: '全部暂停',
+			actions: '操作',
 			// 1
 		},
 		settings: {
@@ -286,6 +290,10 @@ const resources = {
 			sortCreateTime: '最近創建',
 			sortLastBackupTime: '最近備份',
 			sortNextBackupTime: '下一次備份',
+
+			backupAll: '全部備份',
+			pauseAll: '全部暫停',
+			actions: '操作',
 			// 1
 		},
 		settings: {
@@ -458,6 +466,10 @@ const resources = {
 			sortCreateTime: 'Recently created',
 			sortLastBackupTime: 'Recent backup',
 			sortNextBackupTime: 'Next backup',
+
+			backupAll: 'Backup All',
+			pauseAll: 'Pause All',
+			actions: 'Actions',
 			// 1
 		},
 		settings: {
